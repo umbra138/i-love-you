@@ -6,7 +6,7 @@
     <title>Do you love me?</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
 
     <style>
         *, *::before, *::after {
@@ -142,6 +142,101 @@
             opacity: 0;
             transition: opacity 0.5s ease;
         }
+
+        /* ===== Nova sequência: porcentagem / confirmação / animação final ===== */
+        .modal-overlay-love {
+            position: fixed;
+            inset: 0;
+            display: none;
+            z-index: 50;
+        }
+
+        .slider-track {
+            position: relative;
+            width: 100%;
+            height: 34px;
+            background: #1a0014;
+            border: 3px solid #ff66cc;
+            margin: 22px 0 12px 0;
+            touch-action: none;
+            cursor: pointer;
+        }
+
+        .slider-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ff3399, #ffccff);
+            box-shadow: 0 0 10px #ff3399, 0 0 20px #ff66cc;
+        }
+
+        .slider-thumb {
+            position: absolute;
+            top: 50%;
+            left: 0%;
+            width: 22px;
+            height: 22px;
+            background: #fff;
+            border: 3px solid #ff3399;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px #ff3399, 0 0 18px #ff66cc;
+            pointer-events: none;
+        }
+
+        .percent-label {
+            color: #ffccff;
+            font-size: 16pt;
+            margin: 8px 0 28px 0;
+            text-shadow: 0 0 8px #ff3399, 0 0 16px #ff3399;
+        }
+
+        #confirmNoBtn {
+            position: relative;
+            transition: left 0.16s ease, top 0.16s ease;
+        }
+
+        #fullscreenAnim {
+            position: fixed;
+            inset: 0;
+            background: #000000;
+            display: none;
+            overflow: hidden;
+            touch-action: none;
+            z-index: 100;
+            perspective: 1000px;
+            perspective-origin: 50% 50%;
+        }
+
+        #loveWorld {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 0;
+            height: 0;
+            transform-style: preserve-3d;
+            will-change: transform;
+        }
+
+        .love-word {
+            position: absolute;
+            top: 0;
+            left: 0;
+            color: #ffccff;
+            font-family: 'Dancing Script', cursive;
+            font-weight: 700;
+            white-space: nowrap;
+            pointer-events: none;
+            user-select: none;
+            text-shadow:
+                0 0 6px #ffccff,
+                0 0 14px #ff3399,
+                0 0 26px #ff3399;
+            will-change: transform, opacity;
+            transition: color 0.9s ease, text-shadow 0.9s ease;
+        }
     </style>
 </head>
 <body>
@@ -164,6 +259,51 @@
     </div>
 
     <div class="pixel-smiler" id="smileContainer">:)</div>
+
+    <!-- Modal: Quanto você me ama? -->
+    <div class="wrapper modal-overlay-love" id="percentOverlay">
+        <div class="pixel-window">
+            <div class="window-bar">
+                <span class="window-dot"></span>
+                <span class="window-dot"></span>
+                <span class="window-dot"></span>
+            </div>
+            <div class="window-body">
+                <h1 class="title-text" style="margin-bottom:10px;">Quanto você me ama?</h1>
+                <div class="slider-track" id="sliderTrack">
+                    <div class="slider-fill" id="sliderFill"></div>
+                    <div class="slider-thumb" id="sliderThumb"></div>
+                </div>
+                <div class="percent-label" id="percentLabel">0%</div>
+                <div class="btn-container">
+                    <button class="pixel-btn" id="percentContinueBtn">Continuar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: confirmação da porcentagem -->
+    <div class="wrapper modal-overlay-love" id="confirmOverlay">
+        <div class="pixel-window">
+            <div class="window-bar">
+                <span class="window-dot"></span>
+                <span class="window-dot"></span>
+                <span class="window-dot"></span>
+            </div>
+            <div class="window-body">
+                <h1 class="title-text" id="confirmTitle">Você realmente me ama 0%?</h1>
+                <div class="btn-container">
+                    <button class="pixel-btn" id="confirmYesBtn">SIM</button>
+                    <button class="pixel-btn" id="confirmNoBtn">NÃO</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Animação final em tela cheia: túnel -> galáxia -> coração -->
+    <div id="fullscreenAnim">
+        <div id="loveWorld"></div>
+    </div>
 
     <div class="neon-center-set" id="neonSet">
         <div class="neon-text">LOVE YOU</div>
@@ -242,6 +382,12 @@
             document.getElementById('smileContainer').style.display = 'block';
             document.getElementById('neonSet').style.display = 'none';
             canvas.style.display = 'none';
+
+            // Depois do sorriso, inicia a nova sequência interativa
+            setTimeout(() => {
+                document.getElementById('smileContainer').style.display = 'none';
+                showPercentModal();
+            }, 1000);
         }
 
         function triggerNo() {
@@ -260,6 +406,517 @@
                 document.getElementById('neonSet').style.display = 'flex';
             }, 130);
         }
+
+        /* ================================================================
+           NOVA SEQUÊNCIA:
+           SIM -> "Quanto você me ama?" (barra) -> confirmação (NÃO foge)
+           -> túnel "I LOVE YOU" -> galáxia -> toque forma um coração
+           ================================================================ */
+
+        // ---------- Barra de porcentagem ----------
+        let currentPercent = 0;
+        let sliderDragging = false;
+        const sliderTrack = document.getElementById('sliderTrack');
+        const sliderFill = document.getElementById('sliderFill');
+        const sliderThumb = document.getElementById('sliderThumb');
+        const percentLabel = document.getElementById('percentLabel');
+
+        function setPercentFromClientX(clientX) {
+            const rect = sliderTrack.getBoundingClientRect();
+            let ratio = (clientX - rect.left) / rect.width;
+            ratio = Math.min(1, Math.max(0, ratio));
+            currentPercent = Math.round(ratio * 100);
+            sliderFill.style.width = currentPercent + '%';
+            sliderThumb.style.left = currentPercent + '%';
+            percentLabel.textContent = currentPercent + '%';
+        }
+
+        sliderTrack.addEventListener('pointerdown', (e) => {
+            sliderDragging = true;
+            sliderTrack.setPointerCapture(e.pointerId);
+            setPercentFromClientX(e.clientX);
+        });
+        sliderTrack.addEventListener('pointermove', (e) => {
+            if (sliderDragging) setPercentFromClientX(e.clientX);
+        });
+        sliderTrack.addEventListener('pointerup', (e) => {
+            sliderDragging = false;
+            try { sliderTrack.releasePointerCapture(e.pointerId); } catch (err) {}
+        });
+        sliderTrack.addEventListener('pointercancel', () => {
+            sliderDragging = false;
+        });
+
+        function showPercentModal() {
+            currentPercent = 0;
+            sliderFill.style.width = '0%';
+            sliderThumb.style.left = '0%';
+            percentLabel.textContent = '0%';
+            document.getElementById('percentOverlay').style.display = 'flex';
+        }
+
+        document.getElementById('percentContinueBtn').addEventListener('click', () => {
+            openConfirmModal(currentPercent);
+        });
+
+        // ---------- Modal de confirmação (botão NÃO foge) ----------
+        const confirmNoBtn = document.getElementById('confirmNoBtn');
+
+        function openConfirmModal(percent) {
+            document.getElementById('confirmTitle').textContent = `Você realmente me ama ${percent}%?`;
+            document.getElementById('percentOverlay').style.display = 'none';
+            confirmNoBtn.style.position = 'relative';
+            confirmNoBtn.style.left = '';
+            confirmNoBtn.style.top = '';
+            document.getElementById('confirmOverlay').style.display = 'flex';
+        }
+
+        function fleeNoButton(e) {
+            e.preventDefault();
+            const w = confirmNoBtn.offsetWidth;
+            const h = confirmNoBtn.offsetHeight;
+
+            if (confirmNoBtn.style.position !== 'fixed') {
+                const r = confirmNoBtn.getBoundingClientRect();
+                confirmNoBtn.style.position = 'fixed';
+                confirmNoBtn.style.left = r.left + 'px';
+                confirmNoBtn.style.top = r.top + 'px';
+                confirmNoBtn.style.margin = '0';
+                // força reflow antes de animar para a nova posição
+                void confirmNoBtn.offsetWidth;
+            }
+
+            const maxX = Math.max(0, window.innerWidth - w - 12);
+            const maxY = Math.max(0, window.innerHeight - h - 12);
+            const nx = Math.random() * maxX + 6;
+            const ny = Math.random() * maxY + 6;
+            confirmNoBtn.style.left = nx + 'px';
+            confirmNoBtn.style.top = ny + 'px';
+        }
+
+        confirmNoBtn.addEventListener('pointerdown', fleeNoButton);
+        confirmNoBtn.addEventListener('pointerenter', fleeNoButton);
+        confirmNoBtn.addEventListener('touchstart', fleeNoButton, { passive: false });
+
+        document.getElementById('confirmYesBtn').addEventListener('click', () => {
+            document.getElementById('confirmOverlay').style.display = 'none';
+            startFullscreenAnimation();
+        });
+
+        // ---------- Animação final: túnel -> galáxia -> coração ----------
+        const LOVE_WORD_COUNT = 140;
+        const TUNNEL_RINGS = 12;
+        let ringAngularSpeeds = [];
+        let loveWords = [];
+        let animPhase = null; // 'tunnel' | 'galaxy' | 'heart' | 'heart-done'
+        let animRAF = null;
+        let phaseStartTime = 0;
+        let lastFrameTime = 0;
+
+        function startFullscreenAnimation() {
+            const container = document.getElementById('fullscreenAnim');
+            const world = document.getElementById('loveWorld');
+            container.style.display = 'block';
+            world.innerHTML = '';
+            world.style.transform = 'rotateX(0deg) rotateY(0deg)';
+            resetCamera();
+            loveWords = [];
+
+            for (let i = 0; i < LOVE_WORD_COUNT; i++) {
+                const el = document.createElement('div');
+                el.className = 'love-word';
+                el.textContent = 'I LOVE YOU';
+                el.style.fontSize = (9 + Math.random() * 6).toFixed(1) + 'px';
+                world.appendChild(el);
+                loveWords.push({
+                    el,
+                    angle: Math.random() * Math.PI * 2,
+                    baseAngle: Math.random() * Math.PI * 2,
+                    ring: i % TUNNEL_RINGS,
+                    progress: Math.random(),
+                    speed: 0.18 + Math.random() * 0.18,
+                    lastX: 0, lastY: 0, lastZ: 0, lastScale: 1, lastRot: 0, lastOpacity: 1,
+                    gx: 0, gy: 0, gz: 0, vx: 0, vy: 0, vz: 0, rot: 0, vrot: 0,
+                    startX: 0, startY: 0, startZ: 0, startRot: 0, startScale: 1, startOpacity: 1, targetOpacity: 1,
+                    hx: 0, hy: 0, hz: 0, delay: 0, duration: 0, tStart: 0
+                });
+            }
+
+            startTunnelPhase();
+        }
+
+        function startTunnelPhase() {
+            animPhase = 'tunnel';
+            phaseStartTime = performance.now();
+            lastFrameTime = phaseStartTime;
+
+            ringAngularSpeeds = [];
+            for (let r = 0; r < TUNNEL_RINGS; r++) {
+                const dir = (r % 2 === 0) ? 1 : -1;
+                ringAngularSpeeds.push(dir * (0.5 + (r / TUNNEL_RINGS) * 1.1));
+            }
+
+            cancelAnimationFrame(animRAF);
+            animRAF = requestAnimationFrame(tunnelStep);
+        }
+
+        function tunnelStep(now) {
+            const dt = Math.min(0.05, (now - lastFrameTime) / 1000);
+            lastFrameTime = now;
+            const elapsedSeconds = (now - phaseStartTime) / 1000;
+            const halfW = window.innerWidth / 2;
+            const halfH = window.innerHeight / 2;
+            const maxRadius = Math.hypot(halfW, halfH) * 1.15;
+
+            for (const w of loveWords) {
+                w.progress += w.speed * dt;
+                if (w.progress > 1) {
+                    w.progress -= 1;
+                    w.baseAngle = Math.random() * Math.PI * 2;
+                }
+                const angle = w.baseAngle + ringAngularSpeeds[w.ring] * elapsedSeconds;
+                const radius = w.progress * maxRadius;
+                const x = Math.cos(angle) * radius;
+                const y = Math.sin(angle) * radius;
+                const scale = 0.15 + w.progress * 1.6;
+                let opacity;
+                if (w.progress < 0.12) opacity = w.progress / 0.12;
+                else if (w.progress > 0.88) opacity = (1 - w.progress) / 0.12;
+                else opacity = 1;
+                const rotDeg = (angle * 180 / Math.PI) + 90;
+
+                w.el.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) scale(${scale}) rotate(${rotDeg}deg)`;
+                w.el.style.opacity = opacity.toFixed(2);
+
+                w.lastX = x;
+                w.lastY = y;
+                w.lastZ = 0;
+                w.lastScale = scale;
+                w.lastRot = rotDeg;
+                w.lastOpacity = opacity;
+            }
+
+            if (now - phaseStartTime < 3000) {
+                animRAF = requestAnimationFrame(tunnelStep);
+            } else {
+                startGalaxyPhase();
+            }
+        }
+
+        function startGalaxyPhase() {
+            animPhase = 'spreading';
+            const w2 = window.innerWidth;
+            const h2 = window.innerHeight;
+            const depthRange = Math.min(w2, h2) * 0.9;
+            const now = performance.now();
+
+            for (const w of loveWords) {
+                w.startX = w.lastX;
+                w.startY = w.lastY;
+                w.startZ = w.lastZ;
+                w.startScale = w.lastScale;
+                w.startRot = w.lastRot;
+                w.startOpacity = w.lastOpacity;
+
+                w.gx = (Math.random() - 0.5) * w2 * 1.1;
+                w.gy = (Math.random() - 0.5) * h2 * 1.1;
+                w.gz = (Math.random() - 0.5) * depthRange;
+                w.vx = (Math.random() - 0.5) * 18;
+                w.vy = (Math.random() - 0.5) * 18;
+                w.vz = (Math.random() - 0.5) * 16;
+                w.rot = Math.random() * 360;
+                w.vrot = (Math.random() - 0.5) * 20;
+                w.targetOpacity = 0.75 + Math.random() * 0.25;
+
+                w.delay = Math.random() * 350;
+                w.duration = 1000 + Math.random() * 700;
+                w.tStart = now + w.delay;
+            }
+
+            cancelAnimationFrame(animRAF);
+            animRAF = requestAnimationFrame(spreadStep);
+        }
+
+        function spreadStep(now) {
+            let allDone = true;
+            for (const w of loveWords) {
+                let t = (now - w.tStart) / w.duration;
+                if (t < 0) { t = 0; allDone = false; }
+                else if (t >= 1) { t = 1; }
+                else { allDone = false; }
+
+                const e = easeInOutCubic(t);
+                const x = w.startX + (w.gx - w.startX) * e;
+                const y = w.startY + (w.gy - w.startY) * e;
+                const z = w.startZ + (w.gz - w.startZ) * e;
+                const scale = w.startScale + (1 - w.startScale) * e;
+                const rot = w.startRot + (w.rot - w.startRot) * e;
+                const opacity = w.startOpacity + (w.targetOpacity - w.startOpacity) * e;
+
+                w.el.style.transform = `translate3d(${x}px, ${y}px, ${z}px) translate(-50%, -50%) scale(${scale}) rotate(${rot}deg)`;
+                w.el.style.opacity = opacity.toFixed(2);
+            }
+
+            if (!allDone) {
+                animRAF = requestAnimationFrame(spreadStep);
+            } else {
+                animPhase = 'galaxy';
+                lastFrameTime = performance.now();
+                animRAF = requestAnimationFrame(galaxyStep);
+                enableCameraControl();
+            }
+        }
+
+        function galaxyStep(now) {
+            const dt = Math.min(0.05, (now - lastFrameTime) / 1000);
+            lastFrameTime = now;
+            const w2 = window.innerWidth;
+            const h2 = window.innerHeight;
+            const halfW = w2 * 0.6;
+            const halfH = h2 * 0.6;
+            const halfD = Math.min(w2, h2) * 0.55;
+
+            for (const w of loveWords) {
+                w.gx += w.vx * dt;
+                w.gy += w.vy * dt;
+                w.gz += w.vz * dt;
+                w.rot += w.vrot * dt;
+                if (w.gx < -halfW) w.gx = halfW;
+                if (w.gx > halfW) w.gx = -halfW;
+                if (w.gy < -halfH) w.gy = halfH;
+                if (w.gy > halfH) w.gy = -halfH;
+                if (w.gz < -halfD) w.gz = halfD;
+                if (w.gz > halfD) w.gz = -halfD;
+
+                w.el.style.transform = `translate3d(${w.gx}px, ${w.gy}px, ${w.gz}px) translate(-50%, -50%) scale(1) rotate(${w.rot}deg)`;
+            }
+
+            if (animPhase === 'galaxy') {
+                animRAF = requestAnimationFrame(galaxyStep);
+            }
+        }
+
+        // Gera pontos ao longo do CONTORNO de um coração (curva paramétrica),
+        // em múltiplas passadas concêntricas para dar espessura de traço pintado à mão.
+        function heartOutlinePoints(n, size, cx, cy, colorTag) {
+            const pts = [];
+            const passes = 3;
+            const perPass = Math.ceil(n / passes);
+            let idx = 0;
+
+            for (let p = 0; p < passes && idx < n; p++) {
+                const scaleFactor = 1 - p * 0.055;
+                const phase = Math.random() * 0.4;
+                const k = (size * scaleFactor) / 17;
+
+                for (let i = 0; i < perPass && idx < n; i++) {
+                    const t = phase + (i / perPass) * Math.PI * 2;
+                    const x = 16 * Math.pow(Math.sin(t), 3);
+                    const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+                    const jitter = (Math.random() - 0.5) * size * 0.025;
+                    const jitter2 = (Math.random() - 0.5) * size * 0.025;
+                    const jitterZ = (Math.random() - 0.5) * size * 0.06;
+                    const opacity = (colorTag === 'red')
+                        ? 0.15 + Math.random() * 0.4
+                        : 1;
+                    pts.push({
+                        x: cx + x * k + jitter,
+                        y: cy - y * k + jitter2,
+                        z: jitterZ,
+                        color: colorTag,
+                        opacity
+                    });
+                    idx++;
+                }
+            }
+            return pts;
+        }
+
+        function generateHeartPoints(n) {
+            const w2 = window.innerWidth;
+            const h2 = window.innerHeight;
+            const baseSize = Math.min(w2, h2) * 0.40;
+
+            // Contorno externo, vermelho, maior, envolvendo o coração original
+            const sizeOuter = baseSize * 1.3;
+            const cxOuter = -baseSize * 0.02;
+            const cyOuter = -baseSize * 0.08;
+
+            // Coração original, magenta/rosa (o do meio)
+            const sizeMid = baseSize;
+            const cxMid = -baseSize * 0.02;
+            const cyMid = -baseSize * 0.08;
+
+            // Coração pequeno, branco/prateado, sobreposto mais abaixo
+            const sizeInner = baseSize * 0.58;
+            const cxInner = baseSize * 0.05;
+            const cyInner = baseSize * 0.22;
+
+            const nOuter = Math.round(n * 0.4);
+            const nInner = Math.round(n * 0.22);
+            const nMid = n - nOuter - nInner;
+
+            const ptsOuter = heartOutlinePoints(nOuter, sizeOuter, cxOuter, cyOuter, 'red');
+            const ptsMid = heartOutlinePoints(nMid, sizeMid, cxMid, cyMid, 'pink');
+            const ptsInner = heartOutlinePoints(nInner, sizeInner, cxInner, cyInner, 'white');
+            return ptsOuter.concat(ptsMid, ptsInner);
+        }
+
+        function convergeToHeart() {
+            animPhase = 'heart';
+            cancelAnimationFrame(animRAF);
+            const targets = generateHeartPoints(loveWords.length);
+            const now = performance.now();
+
+            loveWords.forEach((w, i) => {
+                w.startX = w.gx;
+                w.startY = w.gy;
+                w.startZ = w.gz;
+                w.startRot = w.rot;
+                w.startOpacity = parseFloat(w.el.style.opacity) || 1;
+                w.hx = targets[i].x;
+                w.hy = targets[i].y;
+                w.hz = targets[i].z;
+                w.targetOpacity = targets[i].opacity !== undefined ? targets[i].opacity : 1;
+                w.delay = Math.random() * 500;
+                w.duration = 1400 + Math.random() * 900;
+                w.tStart = now + w.delay;
+
+                if (targets[i].color === 'white') {
+                    w.el.style.color = '#ffffff';
+                    w.el.style.textShadow = '0 0 6px #ffffff, 0 0 14px #e6ccff, 0 0 26px #cfd8ff';
+                } else if (targets[i].color === 'red') {
+                    w.el.style.color = '#ff4d4d';
+                    w.el.style.textShadow = '0 0 6px #ff3333, 0 0 14px #ff0000, 0 0 26px #cc0000';
+                } else {
+                    w.el.style.color = '#ffccff';
+                    w.el.style.textShadow = '0 0 6px #ffccff, 0 0 14px #ff3399, 0 0 26px #ff3399';
+                }
+            });
+
+            animRAF = requestAnimationFrame(heartStep);
+        }
+
+        function easeInOutCubic(t) {
+            return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        }
+
+        function heartStep(now) {
+            let allDone = true;
+            for (const w of loveWords) {
+                let t = (now - w.tStart) / w.duration;
+                if (t < 0) { t = 0; allDone = false; }
+                else if (t >= 1) { t = 1; }
+                else { allDone = false; }
+
+                const e = easeInOutCubic(t);
+                const x = w.startX + (w.hx - w.startX) * e;
+                const y = w.startY + (w.hy - w.startY) * e;
+                const z = w.startZ + (w.hz - w.startZ) * e;
+                const rot = w.startRot + (0 - w.startRot) * e;
+                const scale = 1 - 0.15 * e;
+                const opacity = w.startOpacity + (w.targetOpacity - w.startOpacity) * e;
+
+                w.el.style.transform = `translate3d(${x}px, ${y}px, ${z}px) translate(-50%, -50%) scale(${scale}) rotate(${rot}deg)`;
+                w.el.style.opacity = opacity.toFixed(2);
+            }
+
+            if (!allDone) {
+                animRAF = requestAnimationFrame(heartStep);
+            } else {
+                animPhase = 'heart-done';
+            }
+        }
+
+        // ---------- Câmera livre (ativa somente a partir da fase de galáxia) ----------
+        let cameraYaw = 0;
+        let cameraPitch = 0;
+        let cameraVYaw = 0;
+        let cameraVPitch = 0;
+        let cameraDragging = false;
+        let cameraLastX = 0;
+        let cameraLastY = 0;
+        let cameraLastMoveTime = 0;
+        let cameraMovedDist = 0;
+        let cameraEnabled = false;
+        let cameraRAF = null;
+        const TAP_THRESHOLD = 9;
+
+        function resetCamera() {
+            cameraYaw = 0;
+            cameraPitch = 0;
+            cameraVYaw = 0;
+            cameraVPitch = 0;
+            cameraDragging = false;
+            cameraEnabled = false;
+            cancelAnimationFrame(cameraRAF);
+        }
+
+        function enableCameraControl() {
+            if (cameraEnabled) return;
+            cameraEnabled = true;
+            cameraLastMoveTime = performance.now();
+            cameraRAF = requestAnimationFrame(cameraLoop);
+        }
+
+        function onCamPointerDown(e) {
+            if (!cameraEnabled) return;
+            cameraDragging = true;
+            cameraMovedDist = 0;
+            cameraLastX = e.clientX;
+            cameraLastY = e.clientY;
+            cameraLastMoveTime = performance.now();
+        }
+
+        function onCamPointerMove(e) {
+            if (!cameraEnabled || !cameraDragging) return;
+            const now = performance.now();
+            const dt = Math.max(0.001, (now - cameraLastMoveTime) / 1000);
+            const dx = e.clientX - cameraLastX;
+            const dy = e.clientY - cameraLastY;
+            const sensitivity = 0.25;
+
+            cameraYaw += dx * sensitivity;
+            cameraPitch = Math.max(-75, Math.min(75, cameraPitch - dy * sensitivity));
+            cameraVYaw = (dx * sensitivity) / dt;
+            cameraVPitch = (-dy * sensitivity) / dt;
+
+            cameraMovedDist += Math.abs(dx) + Math.abs(dy);
+            cameraLastX = e.clientX;
+            cameraLastY = e.clientY;
+            cameraLastMoveTime = now;
+        }
+
+        function onCamPointerUp() {
+            if (!cameraEnabled) return;
+            if (cameraDragging && cameraMovedDist < TAP_THRESHOLD && animPhase === 'galaxy') {
+                convergeToHeart();
+            }
+            cameraDragging = false;
+        }
+
+        function cameraLoop(now) {
+            const dt = Math.min(0.05, (now - (cameraLoop.lastTime || now)) / 1000);
+            cameraLoop.lastTime = now;
+
+            if (!cameraDragging) {
+                cameraYaw += cameraVYaw * dt;
+                cameraPitch = Math.max(-75, Math.min(75, cameraPitch + cameraVPitch * dt));
+                cameraVYaw *= 0.94;
+                cameraVPitch *= 0.94;
+            }
+
+            const world = document.getElementById('loveWorld');
+            world.style.transform = `rotateX(${cameraPitch}deg) rotateY(${cameraYaw}deg)`;
+
+            cameraRAF = requestAnimationFrame(cameraLoop);
+        }
+
+        const fullscreenAnimEl = document.getElementById('fullscreenAnim');
+        fullscreenAnimEl.addEventListener('pointerdown', onCamPointerDown);
+        window.addEventListener('pointermove', onCamPointerMove);
+        window.addEventListener('pointerup', onCamPointerUp);
+        window.addEventListener('pointercancel', onCamPointerUp);
     </script>
 </body>
 </html>
