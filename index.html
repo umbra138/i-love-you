@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -13,14 +14,17 @@
     .btn-row{display:flex;gap:24px;justify-content:center}
     .btn{background:transparent;color:#fff;border:4px outset #fff;padding:10px 18px;cursor:pointer;font-family:'Press Start 2P',monospace}
     .btn:hover{background:#fff;color:#000;border:4px inset #fff}
-    .hidden{display:none}
+    .hidden{display:none !important}
     /* percent modal elements */
-    .slider{width:360px;height:34px;background:#150014;border:3px solid #ff66cc;margin:14px auto;position:relative}
+    .slider{width:360px;height:34px;background:#150014;border:3px solid #ff66cc;margin:14px auto;position:relative;cursor:pointer}
     .fill{position:absolute;left:0;top:0;height:100%;width:0;background:linear-gradient(90deg,#ff3399,#ffccff)}
-    .thumb{position:absolute;left:0;top:50%;transform:translate(-50%,-50%);width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid #ff3399}
+    .thumb{position:absolute;left:0;top:50%;transform:translate(-50%,-50%);width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid #ff3399;transition:border-color 0.1s ease}
     .percent{color:#ffccff;margin-top:8px;font-size:16px}
-    /* fullscreen canvas
-       the three.js canvas will be appended to body and sized to cover viewport */
+    
+    /* Elemento de instrução inferior */
+    .bottom-hint {position:fixed;bottom:30px;left:0;width:100%;text-align:center;color:#fff;font-family:'Press Start 2P',monospace;font-size:11px;z-index:30;pointer-events:none;letter-spacing:1px;line-height:1.6}
+    .blink {animation:blink-animation 1.5s steps(2, start) infinite}
+    @keyframes blink-animation { to { visibility: hidden; } }
   </style>
   <!-- Font for UI (keeps original aesthetic) -->
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -61,6 +65,9 @@
     </div>
   </div>
 
+  <!-- Texto informativo inferior -->
+  <div class="bottom-hint hidden blink" id="bottomHint"></div>
+
   <!-- three.js canvas will be injected programmatically -->
 
   <script type="module">
@@ -95,6 +102,9 @@
     const confirmText = document.getElementById('confirmText');
     const confirmYes = document.getElementById('confirmYes');
     const confirmNo = document.getElementById('confirmNo');
+    const bottomHint = document.getElementById('bottomHint');
+
+    let lovePercentage = 0;
 
     // --- three.js basic setup ---
     const scene = new THREE.Scene();
@@ -106,7 +116,7 @@
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
     document.body.appendChild(renderer.domElement);
 
     // Lighting - designed to emphasize extrusion depth
@@ -138,423 +148,87 @@
     let font = null;
     let baseGeometry = null;
     let wordMeshes = [];
-    let animationState = 'idle'; // 'idle' | 'tunnel' | 'explode' | 'gathering' | 'heart' | 'done'
+    let animationState = 'idle'; // 'idle' | 'tunnel' | 'assembleHeart' | 'final'
 
     // Camera travel
-    let cameraZ = -1200; // start a bit back so tunnel ahead
-    camera.position.z = cameraZ;
+    let cameraZ = 0; 
     let tunnelSpeed = 420; // units per second camera forward
+    let stateTime = 0;
+    let originalPositions = [];
+    let heartPositions = [];
 
     // Utility easing
     function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
     function easeInOutSine(t){ return -(Math.cos(Math.PI * t) - 1) / 2; }
 
-    // Load font and build word geometry once
-    const loader = new FontLoader();
-    loader.load('https://unpkg.com/three@0.154.0/examples/fonts/helvetiker_regular.typeface.json', (f) => {
-      font = f;
-      buildBaseGeometry();
-      buildTunnelWords();
-      // Render a single frame to avoid blank screen; UI remains overlaid
-      renderer.render(scene, camera);
-    });
+    // --- INTERAÇÕES DE ELEMENTOS DA UI ---
 
-    function buildBaseGeometry(){
-      // Use TextGeometry to create a single base geometry for "LOVE ME" with extrusion and bevel
-      const params = {
-        font: font,
-        size: WORD_HEIGHT,
-        height: EXTRUDE_DEPTH,
-        curveSegments: 8,
-        bevelEnabled: true,
-        bevelThickness: BEVEL_SIZE,
-        bevelSize: BEVEL_SIZE * 0.6,
-        bevelOffset: 0,
-        bevelSegments: 3
-      };
-      baseGeometry = new TextGeometry(WORD, params);
-      baseGeometry.computeBoundingBox();
-      baseGeometry.computeVertexNormals();
-
-      // Center geometry around its origin so placement is intuitive
-      const bbox = baseGeometry.boundingBox;
-      const xMid = -0.5 * (bbox.max.x + bbox.min.x);
-      const yMid = -0.5 * (bbox.max.y + bbox.min.y);
-      baseGeometry.translate(xMid, yMid, 0);
-    }
-
-    function buildTunnelWords(){
-      // Create many meshes positioned in columns around the camera along z axis
-      const materialFront = new THREE.MeshStandardMaterial({color:0xffb3e6, metalness:0.15, roughness:0.45});
-      const materialBack = new THREE.MeshStandardMaterial({color:0xff66cc, metalness:0.05, roughness:0.6});
-
-      wordMeshes = [];
-
-      const angleStep = (Math.PI * 2) / TUNNEL_COLUMN_COUNT;
-
-      let created = 0;
-      for (let c = 0; c < TUNNEL_COLUMN_COUNT; c++){
-        const angle = c * angleStep;
-        const cos = Math.cos(angle);
-        const sin = Math.sin(angle);
-
-        for (let r = 0; r < WORDS_PER_COLUMN && created < WORD_COUNT; r++){
-          const g = baseGeometry.clone();
-          const m = new THREE.Mesh(g, (Math.random() < 0.5) ? materialFront : materialBack);
-
-          // tightly stacked vertically; spacing chosen so columns are continuous
-          const verticalSpacing = WORD_HEIGHT * 1.05; // slightly more than font size to avoid overlap
-          // z position distributed along [0, TUNNEL_LENGTH)
-          const z = Math.random() * TUNNEL_LENGTH;
-          // radial offset slightly varied
-          const radial = TUNNEL_RADIUS * (0.9 + Math.random() * 0.18);
-
-          m.position.set(cos * radial, (r - WORDS_PER_COLUMN/2) * verticalSpacing, z);
-          // rotate to face roughly toward center, but keep upright so words readable while passing
-          const lookAt = new THREE.Vector3(0,0,z);
-          m.lookAt(lookAt);
-
-          tunnelGroup.add(m);
-          wordMeshes.push({mesh:m, state:'tunnel'});
-          created++;
-        }
-      }
-
-      // If we still have fewer than WORD_COUNT, distribute extras randomly in tunnelGroup
-      while (created < WORD_COUNT){
-        const g = baseGeometry.clone();
-        const m = new THREE.Mesh(g, Math.random() < 0.5 ? materialFront : materialBack);
-        const z = Math.random() * TUNNEL_LENGTH;
-        const theta = Math.random() * Math.PI * 2;
-        const radial = TUNNEL_RADIUS * (0.8 + Math.random() * 0.4);
-        const vertical = (Math.random() - 0.5) * WORDS_PER_COLUMN * WORD_HEIGHT;
-        m.position.set(Math.cos(theta)*radial, vertical, z);
-        m.lookAt(new THREE.Vector3(0,0,z));
-        tunnelGroup.add(m);
-        wordMeshes.push({mesh:m, state:'tunnel'});
-        created++;
-      }
-    }
-
-    // --- UI interactions ---
-    btnYes.addEventListener('click', ()=>{
-      // keep camera static; hide start UI and proceed to percent modal after brief fade effect
+    btnYes.addEventListener('click', () => {
       uiStart.classList.add('hidden');
       uiPercent.classList.remove('hidden');
     });
 
-    btnNo.addEventListener('click', ()=>{
-      // simple visual reaction: shake panel then show tunnel quickly
-      panelShake(panelStart);
-      // proceed to show tunnel as in original No behavior
-      setTimeout(()=>{
-        uiStart.classList.add('hidden');
-        startTunnelSequence();
-      }, 220);
-    });
+    function moverBotaoNo() {
+      btnNo.style.position = 'absolute';
+      btnNo.style.top = Math.random() * 70 + 15 + '%';
+      btnNo.style.left = Math.random() * 70 + 15 + '%';
+    }
+    btnNo.addEventListener('mouseover', moverBotaoNo);
+    btnNo.addEventListener('click', moverBotaoNo);
 
-    // Slider logic (pointer)
-    function setPercentFromClientX(clientX){
+    let isDragging = false;
+    function updateSlider(e) {
       const rect = slider.getBoundingClientRect();
-      let ratio = (clientX - rect.left) / rect.width;
-      ratio = Math.max(0, Math.min(1, ratio));
-      const value = Math.round(ratio * 100);
-      fill.style.width = value + '%';
-      thumb.style.left = value + '%';
-      pct.textContent = value + '%';
-      confirmText.textContent = `VOCÊ REALMENTE ME AMA ${value}%?`;
-    }
-    let dragging = false;
-    slider.addEventListener('pointerdown', (e)=>{ dragging=true; slider.setPointerCapture(e.pointerId); setPercentFromClientX(e.clientX); });
-    slider.addEventListener('pointermove', (e)=>{ if(dragging) setPercentFromClientX(e.clientX); });
-    slider.addEventListener('pointerup', (e)=>{ dragging=false; try{slider.releasePointerCapture(e.pointerId);}catch(e){} });
-    slider.addEventListener('pointercancel', ()=>{ dragging=false });
+      const clientX = e.touches ? e.touches.clientX : e.clientX;
+      let offsetX = clientX - rect.left;
+      offsetX = Math.max(0, Math.min(offsetX, rect.width));
+      lovePercentage = Math.round((offsetX / rect.width) * 100);
+      
+      fill.style.width = lovePercentage + '%';
+      thumb.style.left = lovePercentage + '%';
+      pct.innerText = lovePercentage + '%';
 
-    btnContinue.addEventListener('click', ()=>{
+      // Muda dinamicamente do Rosa (HSL 330) para o Vermelho (HSL 0)
+      const hue = 330 - (lovePercentage * 3.3);
+      const currentColor = `hsl(${hue}, 100%, 60%)`;
+      
+      fill.style.background = currentColor;
+      thumb.style.borderColor = currentColor;
+      pct.style.color = `hsl(${hue}, 100%, 85%)`;
+    }
+
+    slider.addEventListener('mousedown', (e) => { isDragging = true; updateSlider(e); });
+    window.addEventListener('mousemove', (e) => { if (isDragging) updateSlider(e); });
+    window.addEventListener('mouseup', () => isDragging = false);
+    slider.addEventListener('touchstart', (e) => { isDragging = true; updateSlider(e); });
+    window.addEventListener('touchmove', (e) => { if (isDragging) updateSlider(e); });
+    window.addEventListener('touchend', () => isDragging = false);
+
+    btnContinue.addEventListener('click', () => {
       uiPercent.classList.add('hidden');
-      uiConfirm.classList.remove('hidden');
+      if (lovePercentage < 100) {
+        confirmText.innerText = `VOCÊ REALMENTE ME AMA APENAS ${lovePercentage}%?`;
+        uiConfirm.classList.remove('hidden');
+      } else {
+        startTunnelAnimation();
+      }
     });
 
-    // make "NÃO" button flee gently within the modal (but remain clickable if user persistent)
-    let confirmNoIsFixed = false;
-    function fleeNo(e){
-      e.preventDefault();
-      const el = confirmNo;
-      if(!confirmNoIsFixed){
-        el.style.position = 'fixed';
-        const r = el.getBoundingClientRect();
-        el.style.left = r.left + 'px';
-        el.style.top = r.top + 'px';
-        el.style.margin = '0';
-        confirmNoIsFixed = true;
-      }
-      const w = el.offsetWidth; const h = el.offsetHeight;
-      const nx = 8 + Math.random() * (window.innerWidth - w - 16);
-      const ny = 8 + Math.random() * (window.innerHeight - h - 16);
-      el.style.left = nx + 'px'; el.style.top = ny + 'px';
-    }
-    confirmNo.addEventListener('pointerenter', fleeNo);
-    confirmNo.addEventListener('pointerdown', fleeNo);
-
-    confirmYes.addEventListener('click', ()=>{
+    confirmYes.addEventListener('click', () => {
       uiConfirm.classList.add('hidden');
-      // after confirmation, start the tunnel sequence (camera remains static until heart assembled)
-      startTunnelSequence();
+      startTunnelAnimation();
     });
 
-
-    // --- Sequence orchestration ---
-    let lastTime = performance.now();
-    function startTunnelSequence(){
-      animationState = 'tunnel';
-      // ensure tunnelGroup visible and camera remains fixed orientation
-      cameraZ = -1200; camera.position.z = cameraZ;
-      // show the scene by ensuring renderer canvas is present (already appended)
-      // Start animation loop
-      lastTime = performance.now();
-      animate();
-
-      // We'll run the tunnel for a fixed duration (e.g., 6 seconds), then trigger the soft explosion
-      setTimeout(()=>{
-        // begin gentle transition to explosion phase
-        animationState = 'explode';
-        prepareExplosion();
-      }, 6000);
-    }
-
-    // tunnel loop behavior: camera moves forward, words wrap seamlessly
-    function updateTunnel(dt){
-      // move camera forward along +z (so words appear to move toward camera)
-      cameraZ += tunnelSpeed * dt;
-      camera.position.z = cameraZ;
-
-      // Keep the camera looking straight forward (no rotation)
-      camera.rotation.set(0,0,0);
-
-      // For each mesh, compare its world z to camera and wrap if behind
-      for (const w of wordMeshes){
-        if(w.state !== 'tunnel') continue;
-        // world position z in same space as camera because we used positions directly
-        const z = w.mesh.position.z;
-        // as cameraZ increases, words with z < cameraZ - margin have passed behind camera
-        if(z < cameraZ - 80){
-          // move this word forward by adding TUNNEL_LENGTH so it reappears ahead
-          w.mesh.position.z = z + TUNNEL_LENGTH;
-        }
-        // Optionally add a slight local rotation to create 'pass-around' feeling but NO camera rotation
-        // We'll use orientation so words face camera's forward direction
-        w.mesh.lookAt(new THREE.Vector3(camera.position.x, camera.position.y, w.mesh.position.z + 200));
-      }
-    }
-
-    // --- Explosion (soft spread) ---
-    function prepareExplosion(){
-      // Transition words from tunnelGroup to roamGroup, each word gets a velocity and target later
-      animationState = 'explode';
-      // Move all tunnel meshes into roamGroup, preserving world transforms
-      wordMeshes.forEach(w => {
-        // convert position from tunnelGroup local to world (they are in tunnelGroup but positions are in local coords)
-        const worldPos = w.mesh.getWorldPosition(new THREE.Vector3());
-        w.mesh.position.copy(worldPos);
-        scene.add(w.mesh);
-        roamGroup.add(w.mesh);
-
-        // assign physics-like velocity small so they drift outward slowly
-        w.vx = (Math.random() - 0.5) * 12; // smaller velocities
-        w.vy = (Math.random() - 0.5) * 12;
-        w.vz = (Math.random() - 0.5) * 18 + 20; // push forward away from camera
-        w.state = 'roam';
-      });
-
-      // After a short duration of gentle spreading, begin gathering to heart
-      setTimeout(()=>{
-        animationState = 'gathering';
-        prepareGathering();
-      }, 900); // explosion extremely smooth, short
-    }
-
-    // --- Generate target positions for heart outline filled by words ---
-    function heartParam(t){
-      // classic heart parametric curve scaled
-      const x = 16 * Math.pow(Math.sin(t), 3);
-      const y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
-      return new THREE.Vector2(x, y);
-    }
-
-    function prepareGathering(){
-      // Generate many points along heart outline and surface (we'll generate WORD_COUNT targets)
-      const w = Math.min(window.innerWidth, window.innerHeight) * 0.8;
-      const scale = w / 32; // tune scale so heart fits nicely
-      const targets = [];
-
-      // We'll distribute points along outline with some radial thickness (so words fill the heart)
-      for(let i=0;i<WORD_COUNT;i++){
-        const angle = Math.random() * Math.PI * 2;
-        const t = (i / WORD_COUNT) * Math.PI * 2;
-        const base = heartParam(t + (Math.random()-0.5)*0.02);
-        // radial jitter for filling
-        const jitterR = (Math.random() - 0.5) * 2.4;
-        const px = (base.x + jitterR * Math.cos(angle)) * scale;
-        const py = (base.y + jitterR * Math.sin(angle)) * scale * -1; // invert y so heart points downwards appropriately
-        const pz = (Math.random() - 0.5) * 120; // depth spread so heart has thickness
-        targets.push(new THREE.Vector3(px, py, pz - 100)); // offset a bit forward
-      }
-
-      // Assign each roaming word a target with staggered timing
-      const now = performance.now();
-      for(let i=0;i<wordMeshes.length;i++){
-        const wmesh = wordMeshes[i];
-        wmesh.state = 'gathering';
-        wmesh.startPos = wmesh.mesh.position.clone();
-        wmesh.targetPos = targets[i];
-        wmesh.startTime = now + Math.random() * 800; // slight staggering
-        wmesh.duration = 1600 + Math.random() * 900;
-      }
-
-      // After assigning, set animationState to gathering so update loop will do interpolation
-      animationState = 'gathering';
-    }
-
-    // --- Heart formation completed callback ---
-    function onHeartFormed(){
-      animationState = 'heart';
-      // place all words into heartGroup (but they are already positioned in scene)
-      wordMeshes.forEach(w => {
-        heartGroup.add(w.mesh);
-        // tiny random phase for oscillation
-        w.oscPhase = Math.random() * Math.PI * 2;
-      });
-
-      // Start slow beating and after small delay enable camera movement
-      startBeating();
-      setTimeout(()=>{
-        enableCameraMovement();
-      }, 800);
-    }
-
-    // --- gentle per-word oscillation and heart beat ---
-    let heartBeatStart = 0;
-    function startBeating(){
-      heartBeatStart = performance.now();
-    }
-
-    function updateHeart(dt, now){
-      // gentle per-word oscillation
-      for(const w of wordMeshes){
-        // tiny oscillation around base position
-        const mesh = w.mesh;
-        const phase = (now * 0.0004) + (w.oscPhase || 0);
-        mesh.position.x += Math.sin(phase) * 0.0005; // extremely subtle
-        mesh.position.y += Math.cos(phase*1.1) * 0.0006;
-        // small rotation wobble
-        mesh.rotation.z += Math.sin(phase) * 0.0009;
-      }
-
-      // heart beat: uniform scale of heartGroup
-      const t = ((now - heartBeatStart) % 4000) / 4000; // 4s period
-      const beat = 1 + 0.015 * Math.sin(t * Math.PI * 2); // very subtle
-      heartGroup.scale.set(beat, beat, beat);
-    }
-
-    function enableCameraMovement(){
-      controls.enabled = true;
-      controls.autoRotate = true;
-      controls.autoRotateSpeed = 0.08; // very slow
-      // Make an initial smooth camera fly-out to show the heart
-      // animate camera on a short path
-      const start = camera.position.clone();
-      const targetPos = new THREE.Vector3(0, 20, cameraZ - 420);
-      const t0 = performance.now();
-      const dur = 1200;
-      function fly(){
-        const now = performance.now();
-        const tt = Math.min(1, (now - t0)/dur);
-        const e = easeInOutSine(tt);
-        camera.position.lerpVectors(start, targetPos, e);
-        if(tt < 1) requestAnimationFrame(fly);
-      }
-      fly();
-    }
-
-    // --- Panel shake helper for No button ---
-    function panelShake(el){
-      if(!el) return;
-      el.style.transition = 'transform 0.04s linear';
-      el.style.transform = 'translate(6px,4px)';
-      setTimeout(()=>el.style.transform='translate(-6px,-4px)',40);
-      setTimeout(()=>el.style.transform='translate(6px,-4px)',80);
-      setTimeout(()=>el.style.transform='',140);
-    }
-
-    // --- Core animation loop ---
-    let heartFormCheckDone = false;
-    function animate(now){
-      requestAnimationFrame(animate);
-      const tNow = now || performance.now();
-      const dt = Math.min(0.05, (tNow - lastTime)/1000);
-      lastTime = tNow;
-
-      if(animationState === 'tunnel'){
-        updateTunnel(dt);
-      }else if(animationState === 'explode'){
-        // apply gentle drift to roamGroup words and slightly reduce velocity
-        for(const w of wordMeshes){
-          if(w.state === 'roam'){
-            // simple physics integration for drift
-            w.vx *= 0.995; w.vy *= 0.995; w.vz *= 0.995;
-            w.mesh.position.x += w.vx * dt;
-            w.mesh.position.y += w.vy * dt;
-            w.mesh.position.z += w.vz * dt;
-            // small rotation
-            w.mesh.rotation.x += 0.02 * dt * (Math.random()-0.5);
-            w.mesh.rotation.y += 0.02 * dt * (Math.random()-0.5);
-          }
-        }
-      }else if(animationState === 'gathering'){
-        let allArrived = true;
-        const nowMs = performance.now();
-        for(const w of wordMeshes){
-          if(w.state !== 'gathering') continue;
-          const tt = Math.max(0, Math.min(1, (nowMs - w.startTime)/w.duration));
-          const e = easeInOutSine(tt);
-          const p = new THREE.Vector3().lerpVectors(w.startPos, w.targetPos, e);
-          w.mesh.position.copy(p);
-          // orient with a gentle facing towards camera center (so depth visible)
-          w.mesh.lookAt(new THREE.Vector3(0,0,camera.position.z - 50));
-          if(tt < 1) allArrived = false;
-        }
-        if(allArrived && !heartFormCheckDone){
-          heartFormCheckDone = true;
-          setTimeout(onHeartFormed, 300); // small settle
-        }
-      }else if(animationState === 'heart' || animationState === 'done'){
-        updateHeart(dt, tNow);
-      }
-
-      // update controls if enabled
-      if(controls.enabled){
-        controls.update();
-      }
-
-      renderer.render(scene, camera);
-    }
-
-    // resize handling
-    window.addEventListener('resize', ()=>{
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
+    confirmNo.addEventListener('click', () => {
+      uiConfirm.classList.add('hidden');
+      uiPercent.classList.remove('hidden');
     });
 
-    // Safety: if user never clicks, still render a baseline frame
-    renderer.render(scene, camera);
-
-    // Accessibility: trap keyboard for simple testing
-    window.addEventListener('keydown', (e)=>{
-      if(e.key === 'Enter') btnYes.click();
-      if(e.key === ' ') btnNo.click();
-    });
-
-  </script>
-</body>
-</html>
+    function startTunnelAnimation() {
+      uiStart.classList.add('hidden');
+      uiPercent.classList.add('hidden');
+      uiConfirm.classList.add('hidden');
+      
+      bottomHint.innerText = "TOQUE NA TELA PARA AVANÇAR";
+      bottomHint.classList.remove('hidden');
+      
