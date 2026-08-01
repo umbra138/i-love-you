@@ -1,237 +1,846 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
+<!doctype html>
+<html lang="pt-br">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Do you love me?</title>
-  <style>
-    html,body{height:100%;margin:0;background:#000;overflow:hidden;font-family:Arial,Helvetica,sans-serif}
-    /* UI overlays */
-    .center-ui{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:20;pointer-events:none}
-    .panel{background:#000;border:5px double #fff;padding:28px 22px;text-align:center;pointer-events:auto;box-shadow:10px 10px 0 rgba(0,0,0,0.6);max-width:92%;color:#fff}
-    .title{font-family:'Press Start 2P',monospace;font-size:14px;margin:0 0 18px 0}
-    .btn-row{display:flex;gap:24px;justify-content:center}
-    .btn{background:transparent;color:#fff;border:4px outset #fff;padding:10px 18px;cursor:pointer;font-family:'Press Start 2P',monospace}
-    .btn:hover{background:#fff;color:#000;border:4px inset #fff}
-    
-    /* percent modal elements */
-    .slider{width:360px;height:34px;background:#150014;border:3px solid #ff66cc;margin:14px auto;position:relative;cursor:pointer}
-    .fill{position:absolute;left:0;top:0;height:100%;width:0;background:linear-gradient(90deg,#ff3399,#ffccff)}
-    .thumb{position:absolute;left:0;top:50%;transform:translate(-50%,-50%);width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid #ff3399;transition:border-color 0.1s ease}
-    .percent{color:#ffccff;margin-top:8px;font-size:16px}
-    
-    /* UI overlay for instructions */
-    .bottom-hint {position:fixed;bottom:30px;left:0;width:100%;text-align:center;color:#fff;font-family:'Press Start 2P',monospace;font-size:11px;z-index:30;pointer-events:none;letter-spacing:1px;line-height:1.6}
-    .blink {animation:blink-animation 1.5s steps(2, start) infinite}
-    @keyframes blink-animation { to { visibility: hidden; } }
-  </style>
-  <!-- Font for UI (keeps original aesthetic) -->
-  <link href="https://googleapis.com" rel="stylesheet">
-  
-  <!-- CDNs tradicionais sem módulos para evitar bloqueio local de segurança -->
-  <script src="https://cloudflare.com"></script>
-  <script src="https://jsdelivr.net"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Infinity Love</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;1,400&family=Marcellus&display=swap"
+  rel="stylesheet"
+/>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://esm.sh/three@0.165.0",
+    "three/examples/jsm/": "https://esm.sh/three@0.165.0/examples/jsm/",
+    "gsap": "https://esm.sh/gsap@3.12.5"
+  }
+}
+</script>
+<style>
+  :root {
+    --color-bg: #000000;
+    --color-pink: #ff5c8a;
+    --color-pink-soft: #ff9fc0;
+    --color-red: #ff2d55;
+    --color-white: #f5f0f2;
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%; background: var(--color-bg); overflow: hidden;
+    font-family: 'Cormorant Garamond', serif; color: var(--color-white);
+    -webkit-tap-highlight-color: transparent;
+  }
+  #webgl { position: fixed; inset: 0; outline: none; touch-action: none; }
+
+  #loading-screen {
+    position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 1.5rem; background: var(--color-bg);
+    transition: opacity 1s var(--ease), visibility 1s var(--ease);
+  }
+  #loading-screen.is-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  .loading-screen__mark {
+    font-family: 'Marcellus', serif; letter-spacing: 0.5em; font-size: 0.9rem;
+    color: var(--color-pink-soft); text-indent: 0.5em;
+  }
+  .loading-screen__bar { width: 180px; height: 1px; background: rgba(255,255,255,0.15); overflow: hidden; }
+  .loading-screen__bar-fill { height: 100%; width: 0%; background: var(--color-pink); transition: width 0.2s linear; }
+
+  #ui-root { position: fixed; inset: 0; z-index: 10; pointer-events: none; }
+  .stage {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 3rem; opacity: 0; visibility: hidden;
+    pointer-events: none; transition: opacity 1.1s var(--ease); padding: 0 1.5rem; text-align: center;
+  }
+  .stage.is-active { opacity: 1; visibility: visible; pointer-events: auto; }
+  .stage__title {
+    font-family: 'Cormorant Garamond', serif; font-weight: 300; font-style: italic;
+    font-size: clamp(1.8rem, 5vw, 3.2rem); letter-spacing: 0.03em;
+    text-shadow: 0 0 30px rgba(255, 92, 138, 0.45);
+  }
+  .stage__actions { position: relative; width: min(90vw, 420px); height: 120px; }
+  .btn {
+    position: absolute; top: 50%; transform: translate(-50%, -50%);
+    border: 1px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.03);
+    color: var(--color-white); font-family: 'Marcellus', serif; font-size: 1rem;
+    letter-spacing: 0.08em; padding: 0.9rem 2.2rem; border-radius: 999px; cursor: pointer;
+    backdrop-filter: blur(6px);
+    transition: transform 0.35s var(--ease), background 0.35s var(--ease), border-color 0.35s var(--ease);
+    will-change: transform;
+  }
+  .btn--yes { left: 30%; border-color: rgba(255,92,138,0.6); box-shadow: 0 0 24px rgba(255,92,138,0.25); }
+  .btn--yes:hover { background: rgba(255,92,138,0.12); }
+  .btn--no { left: 70%; position: absolute; }
+
+  .slider { width: min(85vw, 380px); display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
+  .slider__track {
+    position: relative; width: 100%; height: 4px; border-radius: 999px;
+    background: rgba(255,255,255,0.15); touch-action: none; cursor: pointer;
+  }
+  .slider__fill {
+    position: absolute; left: 0; top: 0; height: 100%; width: 0%; border-radius: 999px;
+    background: linear-gradient(90deg, var(--color-pink), var(--color-red));
+    box-shadow: 0 0 16px rgba(255,45,85,0.6);
+  }
+  .slider__handle {
+    position: absolute; top: 50%; left: 0%; width: 22px; height: 22px; border-radius: 50%;
+    background: var(--color-white); box-shadow: 0 0 18px rgba(255,92,138,0.8); transform: translate(-50%, -50%);
+  }
+  .slider__value { font-family: 'Marcellus', serif; font-size: 1.4rem; letter-spacing: 0.05em; color: var(--color-pink-soft); }
+</style>
 </head>
 <body>
-  <!-- UI: initial question -->
-  <div class="center-ui" id="uiStart" style="display: flex;">
-    <div class="panel" id="panelStart">
-      <h1 class="title">DO YOU LOVE ME?</h1>
-      <div class="btn-row">
-        <button class="btn" id="btnYes">YES</button>
-        <button class="btn" id="btnNo">NO</button>
+  <canvas id="webgl"></canvas>
+
+  <div id="ui-root">
+    <section class="stage" id="stage-question-one" data-stage="question-one">
+      <h1 class="stage__title">Do you love me that much?</h1>
+      <div class="stage__actions">
+        <button class="btn btn--yes" id="btn-yes-one" type="button">Yes <span aria-hidden="true">❤</span></button>
+        <button class="btn btn--no" id="btn-no-one" type="button">No <span aria-hidden="true">💔</span></button>
       </div>
-    </div>
+    </section>
+
+    <section class="stage" id="stage-slider" data-stage="slider">
+      <h1 class="stage__title">How much do you love me?</h1>
+      <div class="slider">
+        <div class="slider__track" id="slider-track">
+          <div class="slider__fill" id="slider-fill"></div>
+          <div class="slider__handle" id="slider-handle"></div>
+        </div>
+        <div class="slider__value" id="slider-value">0%</div>
+      </div>
+    </section>
   </div>
 
-  <!-- Percent modal -->
-  <div class="center-ui" id="uiPercent" style="display: none;">
-    <div class="panel">
-      <h1 class="title" style="font-size:13px">QUANTO VOCÊ ME AMA?</h1>
-      <div class="slider" id="slider">
-        <div class="fill" id="fill"></div>
-        <div class="thumb" id="thumb"></div>
-      </div>
-      <div class="percent" id="pct">0%</div>
-      <div style="margin-top:12px"><button class="btn" id="btnContinue">Continuar</button></div>
-    </div>
+  <div id="loading-screen">
+    <div class="loading-screen__mark">INFINITY LOVE</div>
+    <div class="loading-screen__bar"><div class="loading-screen__bar-fill" id="loading-bar-fill"></div></div>
   </div>
 
-  <!-- Confirm modal -->
-  <div class="center-ui" id="uiConfirm" style="display: none;">
-    <div class="panel" id="panelConfirm">
-      <h1 class="title" id="confirmText">VOCÊ REALMENTE ME AMA 0%?</h1>
-      <div class="btn-row" style="margin-top:18px">
-        <button class="btn" id="confirmYes">SIM</button>
-        <button class="btn" id="confirmNo">NÃO</button>
-      </div>
-    </div>
-  </div>
+<script type="module">
+import * as THREE from 'three'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js'
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
+import gsap from 'gsap'
 
-  <!-- Bottom interactive hint overlay -->
-  <div class="bottom-hint blink" id="bottomHint" style="display: none;"></div>
+/* ============================== utils/Random ============================== */
+function randRange(min, max) { return min + Math.random() * (max - min) }
+function randInt(min, max) { return Math.floor(randRange(min, max + 1)) }
+function randChoice(array) { return array[randInt(0, array.length - 1)] }
+function randOnSphere(radius) {
+  const u = Math.random(), v = Math.random()
+  const theta = 2 * Math.PI * u, phi = Math.acos(2 * v - 1)
+  return { x: radius * Math.sin(phi) * Math.cos(theta), y: radius * Math.sin(phi) * Math.sin(theta), z: radius * Math.cos(phi) }
+}
+function clamp(value, min, max) { return Math.max(min, Math.min(max, value)) }
 
-  <script>
-    // --- UI refs ---
-    const uiStart = document.getElementById('uiStart');
-    const uiPercent = document.getElementById('uiPercent');
-    const uiConfirm = document.getElementById('uiConfirm');
-    const btnYes = document.getElementById('btnYes');
-    const btnNo = document.getElementById('btnNo');
-    const slider = document.getElementById('slider');
-    const fill = document.getElementById('fill');
-    const thumb = document.getElementById('thumb');
-    const pct = document.getElementById('pct');
-    const btnContinue = document.getElementById('btnContinue');
-    const confirmText = document.getElementById('confirmText');
-    const confirmYes = document.getElementById('confirmYes');
-    const confirmNo = document.getElementById('confirmNo');
-    const bottomHint = document.getElementById('bottomHint');
+/* ============================== core/EventEmitter ============================== */
+class EventEmitter {
+  constructor() { this._callbacks = new Map() }
+  on(event, callback) {
+    if (!this._callbacks.has(event)) this._callbacks.set(event, [])
+    this._callbacks.get(event).push(callback)
+    return this
+  }
+  trigger(event, ...args) {
+    if (!this._callbacks.has(event)) return this
+    for (const cb of this._callbacks.get(event)) cb(...args)
+    return this
+  }
+}
 
-    let lovePercentage = 0;
-    let animationState = 'idle';
+/* ============================== core/Sizes ============================== */
+class Sizes extends EventEmitter {
+  constructor() {
+    super()
+    this.width = window.innerWidth
+    this.height = window.innerHeight
+    this.pixelRatio = Math.min(window.devicePixelRatio, 2)
+    window.addEventListener('resize', () => {
+      this.width = window.innerWidth
+      this.height = window.innerHeight
+      this.pixelRatio = Math.min(window.devicePixelRatio, 2)
+      this.trigger('resize')
+    })
+  }
+  get aspect() { return this.width / this.height }
+}
 
-    // --- CONTROLE DE MENUS VIA DISPLAY DIRETO ---
-    btnYes.addEventListener('click', function() {
-      uiStart.style.display = 'none';
-      uiPercent.style.display = 'flex';
-    });
-
-    function moverBotaoNo() {
-      btnNo.style.position = 'absolute';
-      btnNo.style.top = Math.random() * 70 + 15 + '%';
-      btnNo.style.left = Math.random() * 70 + 15 + '%';
+/* ============================== core/Time ============================== */
+class Time extends EventEmitter {
+  constructor() {
+    super()
+    this.start = performance.now()
+    this.current = this.start
+    this.elapsed = 0
+    this.delta = 1 / 60
+    const tick = (now) => {
+      const rawDelta = (now - this.current) / 1000
+      this.delta = Math.min(rawDelta, 1 / 30)
+      this.current = now
+      this.elapsed = (now - this.start) / 1000
+      this.trigger('tick')
+      requestAnimationFrame(tick)
     }
-    btnNo.addEventListener('mouseover', moverBotaoNo);
-    btnNo.addEventListener('click', moverBotaoNo);
+    requestAnimationFrame(tick)
+  }
+}
 
-    btnContinue.addEventListener('click', function() {
-      uiPercent.style.display = 'none';
-      if (lovePercentage < 100) {
-        confirmText.innerText = "VOCÊ REALMENTE ME AMA APENAS " + lovePercentage + "%?";
-        uiConfirm.style.style.display = 'flex';
-        uiConfirm.style.setProperty("display", "flex", "important");
-      } else {
-        startTunnelAnimation();
+/* ============================== core/Scene ============================== */
+class SceneWrapper {
+  constructor() {
+    this.instance = new THREE.Scene()
+    this.instance.background = new THREE.Color(0x000000)
+    this.instance.fog = new THREE.FogExp2(0x000000, 0.035)
+  }
+  add(o) { this.instance.add(o) }
+  remove(o) { this.instance.remove(o) }
+}
+
+/* ============================== core/Camera ============================== */
+class Camera {
+  constructor(experience) {
+    this.sizes = experience.sizes
+    this.scene = experience.scene.instance
+    this.canvas = experience.canvas
+    this.instance = new THREE.PerspectiveCamera(35, this.sizes.aspect, 0.1, 200)
+    this.instance.position.set(0, 0, 12)
+    this.scene.add(this.instance)
+
+    this.controls = new OrbitControls(this.instance, this.canvas)
+    this.controls.enabled = false
+    this.controls.enableDamping = true
+    this.controls.dampingFactor = 0.06
+    this.controls.enablePan = false
+    this.controls.rotateSpeed = 0.5
+    this.controls.zoomSpeed = 0.6
+    this.controls.minDistance = 6
+    this.controls.maxDistance = 16
+    this.controls.minPolarAngle = 0.35
+    this.controls.maxPolarAngle = Math.PI - 0.35
+  }
+  enableControls() { this.controls.enabled = true }
+  resize() { this.instance.aspect = this.sizes.aspect; this.instance.updateProjectionMatrix() }
+  update() { if (this.controls.enabled) this.controls.update() }
+}
+
+/* ============================== core/Renderer ============================== */
+class Renderer {
+  constructor(experience) {
+    this.sizes = experience.sizes
+    this.scene = experience.scene.instance
+    this.camera = experience.camera
+    this.canvas = experience.canvas
+
+    this.instance = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true, alpha: false, powerPreference: 'high-performance' })
+    this.instance.setSize(this.sizes.width, this.sizes.height)
+    this.instance.setPixelRatio(this.sizes.pixelRatio)
+    this.instance.outputColorSpace = THREE.SRGBColorSpace
+    this.instance.toneMapping = THREE.ACESFilmicToneMapping
+    this.instance.toneMappingExposure = 1.1
+
+    this.composer = new EffectComposer(this.instance)
+    this.composer.setSize(this.sizes.width, this.sizes.height)
+    this.composer.setPixelRatio(this.sizes.pixelRatio)
+    this.composer.addPass(new RenderPass(this.scene, this.camera.instance))
+    this.bloomPass = new UnrealBloomPass(new THREE.Vector2(this.sizes.width, this.sizes.height), 0.55, 0.6, 0.82)
+    this.composer.addPass(this.bloomPass)
+    this.composer.addPass(new OutputPass())
+  }
+  pulseBloom(targetStrength, duration = 0.4) {
+    const start = this.bloomPass.strength
+    const startTime = performance.now()
+    const animate = () => {
+      const t = Math.min((performance.now() - startTime) / (duration * 1000), 1)
+      const eased = 1 - Math.pow(1 - t, 3)
+      this.bloomPass.strength = start + (targetStrength - start) * eased
+      if (t < 1) requestAnimationFrame(animate)
+    }
+    animate()
+  }
+  resize() {
+    this.instance.setSize(this.sizes.width, this.sizes.height)
+    this.instance.setPixelRatio(this.sizes.pixelRatio)
+    this.composer.setSize(this.sizes.width, this.sizes.height)
+    this.composer.setPixelRatio(this.sizes.pixelRatio)
+  }
+  update() { this.composer.render() }
+}
+
+/* ============================== world/Lights ============================== */
+class Lights {
+  constructor(experience) {
+    this.scene = experience.scene
+    this.ambient = new THREE.AmbientLight(0x2a1520, 0.6)
+    this.scene.add(this.ambient)
+    this.keyLight = new THREE.PointLight(0xff5c8a, 12, 30, 2)
+    this.keyLight.position.set(3, 2, 6)
+    this.scene.add(this.keyLight)
+    this.rimLight = new THREE.PointLight(0xff2d55, 8, 40, 2)
+    this.rimLight.position.set(-4, -2, -6)
+    this.scene.add(this.rimLight)
+    this.fillLight = new THREE.DirectionalLight(0xffffff, 0.25)
+    this.fillLight.position.set(0, 5, 5)
+    this.scene.add(this.fillLight)
+  }
+  pulse(mult) { this.keyLight.intensity = 12 * mult; this.rimLight.intensity = 8 * mult }
+}
+
+/* ============================== utils/Performance ============================== */
+class PerformanceMonitor {
+  constructor(time) {
+    this.time = time
+    const cores = navigator.hardwareConcurrency || 4
+    const isMobile = /Mobi|Android/i.test(navigator.userAgent)
+    this.tier = (isMobile && cores <= 4) ? 2 : (isMobile || cores <= 4) ? 1 : 0
+    this._frames = 0; this._elapsedSinceCheck = 0; this._evaluated = false
+    this.time.on('tick', () => {
+      if (this._evaluated) return
+      this._frames += 1
+      this._elapsedSinceCheck += this.time.delta
+      if (this._elapsedSinceCheck >= 2) {
+        const fps = this._frames / this._elapsedSinceCheck
+        if (fps < 35) this.tier = Math.min(this.tier + 1, 2)
+        else if (fps > 55 && this.tier > 0) this.tier -= 1
+        this._evaluated = true
       }
-    });
+    })
+  }
+  get particleMultiplier() { return [1, 0.55, 0.3][this.tier] }
+}
 
-    confirmYes.addEventListener('click', function() {
-      uiConfirm.style.display = 'none';
-      startTunnelAnimation();
-    });
+/* ============================== utils/WordFactory ============================== */
+const FONT_URL = 'https://unpkg.com/three@0.165.0/examples/fonts/helvetiker_regular.typeface.json'
+const geometryCache = new Map()
+let fontPromise = null
 
-    confirmNo.addEventListener('click', function() {
-      uiConfirm.style.display = 'none';
-      uiPercent.style.display = 'flex';
-    });
+function loadFont() {
+  if (!fontPromise) {
+    fontPromise = fetch(FONT_URL).then((r) => r.json()).then((data) => new FontLoader().parse(data))
+  }
+  return fontPromise
+}
+function getGeometry(font, text, size, depth) {
+  const key = `${text}__${size}__${depth}`
+  if (geometryCache.has(key)) return geometryCache.get(key)
+  const geometry = new TextGeometry(text, { font, size, depth, curveSegments: 6, bevelEnabled: true, bevelThickness: depth * 0.18, bevelSize: depth * 0.1, bevelSegments: 2 })
+  geometry.center()
+  geometry.computeVertexNormals()
+  geometryCache.set(key, geometry)
+  return geometry
+}
+const MATERIAL_TONES = {
+  red: { color: 0xff2d55, emissive: 0x53000f, emissiveIntensity: 0.35 },
+  pink: { color: 0xff7fa8, emissive: 0x4a0d20, emissiveIntensity: 0.3 },
+  white: { color: 0xfdf3f5, emissive: 0x330014, emissiveIntensity: 0.18 },
+}
+function createMaterial(tone = 'pink') {
+  const s = MATERIAL_TONES[tone] ?? MATERIAL_TONES.pink
+  return new THREE.MeshPhysicalMaterial({ color: s.color, emissive: s.emissive, emissiveIntensity: s.emissiveIntensity, roughness: 0.35, metalness: 0.1, clearcoat: 0.6, clearcoatRoughness: 0.3 })
+}
+const WordFactory = {
+  preload: () => loadFont(),
+  async createWordMesh(text, { size = 0.5, depth = 0.14, tone = 'pink' } = {}) {
+    const font = await loadFont()
+    const geometry = getGeometry(font, text, size, depth)
+    const mesh = new THREE.Mesh(geometry, createMaterial(tone))
+    mesh.castShadow = true
+    mesh.receiveShadow = true
+    return mesh
+  },
+}
 
-    // Slider interactive mechanics
-    let isDragging = false;
-    function updateSlider(e) {
-      const rect = slider.getBoundingClientRect();
-      const clientX = e.touches ? e.touches.clientX : e.clientX;
-      let offsetX = clientX - rect.left;
-      offsetX = Math.max(0, Math.min(offsetX, rect.width));
-      lovePercentage = Math.round((offsetX / rect.width) * 100);
-      
-      fill.style.width = lovePercentage + '%';
-      thumb.style.left = lovePercentage + '%';
-      pct.innerText = lovePercentage + '%';
+/* ============================== world/IntroTunnel ============================== */
+class IntroTunnel {
+  constructor(experience) {
+    this.scene = experience.scene
+    this.performance = experience.performance
+    this.count = Math.floor(2400 * this.performance.particleMultiplier)
+    this.depth = 60
+    this.radius = 5
+    this._speed = 0
 
-      const hue = 330 - (lovePercentage * 3.3);
-      const currentColor = "hsl(" + hue + ", 100%, 60%)";
-      
-      fill.style.background = currentColor;
-      thumb.style.borderColor = currentColor;
-      pct.style.color = "hsl(" + hue + ", 100%, 85%)";
+    this.geometry = new THREE.BufferGeometry()
+    const positions = new Float32Array(this.count * 3)
+    const sizes = new Float32Array(this.count)
+    const seeds = new Float32Array(this.count)
+    for (let i = 0; i < this.count; i++) {
+      const i3 = i * 3
+      const r = randRange(0.4, this.radius) * Math.sqrt(Math.random())
+      const angle = randRange(0, Math.PI * 2)
+      positions[i3] = Math.cos(angle) * r
+      positions[i3 + 1] = Math.sin(angle) * r
+      positions[i3 + 2] = -randRange(0, this.depth)
+      sizes[i] = randRange(0.6, 2.6)
+      seeds[i] = Math.random()
     }
+    this.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+    this.geometry.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1))
+    this.geometry.setAttribute('aSeed', new THREE.BufferAttribute(seeds, 1))
 
-    slider.addEventListener('mousedown', function(e) { isDragging = true; updateSlider(e); });
-    window.addEventListener('mousemove', function(e) { if (isDragging) updateSlider(e); });
-    window.addEventListener('mouseup', function() { isDragging = false; });
-    slider.addEventListener('touchstart', function(e) { isDragging = true; updateSlider(e); });
-    window.addEventListener('touchmove', function(e) { if (isDragging) updateSlider(e); });
-    window.addEventListener('touchend', function() { isDragging = false; });
-
-    function startTunnelAnimation() {
-      uiStart.style.display = 'none';
-      uiPercent.style.display = 'none';
-      uiConfirm.style.display = 'none';
-      
-      bottomHint.innerText = "TOQUE NA TELA PARA AVANÇAR";
-      bottomHint.style.display = 'block';
-      
-      camera.position.set(0, 0, 200);
-      animationState = 'tunnel';
-      stateTime = 0;
-      clock.getDelta();
-    }
-
-    window.addEventListener('pointerdown', function(e) {
-      if (e.target.tagName === 'BUTTON' || isDragging || e.target.closest('.panel')) return;
-
-      if (animationState === 'tunnel') {
-        animationState = 'assembleHeart';
-        stateTime = 0;
-        bottomHint.style.display = 'none';
-        
-        wordMeshes.forEach(function(mesh, idx) {
-          originalPositions[idx].pos.copy(mesh.position);
-          originalPositions[idx].rot.copy(mesh.rotation);
-        });
+    this.material = new THREE.ShaderMaterial({
+      uniforms: {
+        uColorA: { value: new THREE.Color(0xff9fc0) },
+        uColorB: { value: new THREE.Color(0xff2d55) },
+        uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
+        uOpacity: { value: 0 },
+      },
+      vertexShader: `
+        attribute float aSize;
+        attribute float aSeed;
+        uniform float uPixelRatio;
+        varying float vSeed;
+        varying float vDepth;
+        void main() {
+          vSeed = aSeed;
+          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+          vDepth = clamp(1.0 - (-mvPosition.z / 60.0), 0.0, 1.0);
+          gl_PointSize = aSize * uPixelRatio * (40.0 / -mvPosition.z);
+          gl_Position = projectionMatrix * mvPosition;
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 uColorA;
+        uniform vec3 uColorB;
+        uniform float uOpacity;
+        varying float vSeed;
+        varying float vDepth;
+        void main() {
+          float d = distance(gl_PointCoord, vec2(0.5));
+          if (d > 0.5) discard;
+          float glow = smoothstep(0.5, 0.0, d);
+          vec3 color = mix(uColorA, uColorB, vSeed);
+          float alpha = glow * uOpacity * (0.3 + vDepth * 0.9);
+          gl_FragColor = vec4(color, alpha);
+        }
+      `,
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    })
+    this.points = new THREE.Points(this.geometry, this.material)
+    this.points.frustumCulled = false
+    this.scene.add(this.points)
+  }
+  setSpeed(speed) { this._speed = speed }
+  setOpacity(opacity) { this.material.uniforms.uOpacity.value = opacity }
+  update(delta) {
+    if (this._speed <= 0) return
+    const positions = this.geometry.attributes.position.array
+    const advance = this._speed * delta
+    for (let i = 0; i < this.count; i++) {
+      const i3 = i * 3
+      positions[i3 + 2] += advance
+      if (positions[i3 + 2] > 2) {
+        const r = randRange(0.4, this.radius) * Math.sqrt(Math.random())
+        const angle = randRange(0, Math.PI * 2)
+        positions[i3] = Math.cos(angle) * r
+        positions[i3 + 1] = Math.sin(angle) * r
+        positions[i3 + 2] = -this.depth
       }
-    });
+    }
+    this.geometry.attributes.position.needsUpdate = true
+  }
+}
 
-    // --- CONFIGURAÇÃO DO MOTOR GRÁFICO ---
-    const WORD_COUNT = 280;
-    const TUNNEL_RADIUS = Math.min(window.innerWidth, window.innerHeight) * 0.35;
-    const TUNNEL_LENGTH = 4000;
-    const TUNNEL_COLUMN_COUNT = 22;
-    const WORDS_PER_COLUMN = Math.ceil(WORD_COUNT / TUNNEL_COLUMN_COUNT);
+/* ============================== world/MatrixRain ============================== */
+function createLoveTexture() {
+  const canvas = document.createElement('canvas')
+  canvas.width = 128; canvas.height = 128
+  const ctx = canvas.getContext('2d')
+  ctx.fillStyle = '#ff5c8a'
+  ctx.font = '700 34px "Marcellus", serif'
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+  ctx.shadowColor = '#ff2d55'; ctx.shadowBlur = 18
+  ctx.fillText('LOVE', canvas.width / 2, canvas.height / 2)
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.colorSpace = THREE.SRGBColorSpace
+  return texture
+}
+class MatrixRain {
+  constructor(experience) {
+    this.scene = experience.scene
+    this.performance = experience.performance
+    this._layers = []
+    this._texture = createLoveTexture()
 
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x000000);
+    const layerConfigs = [
+      { z: -14, span: 26, count: 90, speed: 1.2, opacity: 0.18, scale: 0.5 },
+      { z: -9, span: 20, count: 70, speed: 1.9, opacity: 0.32, scale: 0.7 },
+      { z: -5, span: 15, count: 50, speed: 2.8, opacity: 0.5, scale: 1 },
+    ]
+    layerConfigs.forEach((config) => {
+      const count = Math.max(8, Math.floor(config.count * this.performance.particleMultiplier))
+      const geometry = new THREE.PlaneGeometry(config.scale, config.scale)
+      const material = new THREE.MeshBasicMaterial({ map: this._texture, transparent: true, opacity: config.opacity, depthWrite: false, blending: THREE.AdditiveBlending })
+      const mesh = new THREE.InstancedMesh(geometry, material, count)
+      mesh.frustumCulled = false
+      const speeds = new Float32Array(count), phases = new Float32Array(count), columnsX = new Float32Array(count)
+      const dummy = new THREE.Object3D()
+      for (let i = 0; i < count; i++) {
+        speeds[i] = config.speed * (0.7 + Math.random() * 0.6)
+        phases[i] = Math.random() * 20
+        columnsX[i] = (Math.random() - 0.5) * config.span
+        dummy.position.set(columnsX[i], phases[i], config.z)
+        dummy.updateMatrix()
+        mesh.setMatrixAt(i, dummy.matrix)
+      }
+      this.scene.add(mesh)
+      this._layers.push({ mesh, speeds, phases, columnsX, z: config.z, span: config.span, count, halfHeight: 12 })
+    })
+  }
+  update(delta) {
+    const dummy = new THREE.Object3D()
+    for (const layer of this._layers) {
+      for (let i = 0; i < layer.count; i++) {
+        layer.phases[i] -= layer.speeds[i] * delta
+        if (layer.phases[i] < -layer.halfHeight) {
+          layer.phases[i] = layer.halfHeight
+          layer.columnsX[i] = (Math.random() - 0.5) * layer.span
+        }
+        dummy.position.set(layer.columnsX[i], layer.phases[i], layer.z)
+        dummy.updateMatrix()
+        layer.mesh.setMatrixAt(i, dummy.matrix)
+      }
+      layer.mesh.instanceMatrix.needsUpdate = true
+    }
+  }
+}
 
-    const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 10000);
-    camera.position.set(0, 0, 0);
+/* ============================== world/Questions ============================== */
+class Questions {
+  constructor({ onYes }) {
+    this.onYes = onYes
+    this.stageEl = document.getElementById('stage-question-one')
+    this.actionsEl = this.stageEl.querySelector('.stage__actions')
+    this.yesBtn = document.getElementById('btn-yes-one')
+    this.noBtn = document.getElementById('btn-no-one')
+    this._yesScale = 1
+    this._lastBehavior = -1
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
+    const onNoInteract = (event) => {
+      event.preventDefault()
+      this._growYes()
+      this._reactNoButton()
+    }
+    this.noBtn.addEventListener('pointerenter', onNoInteract)
+    this.noBtn.addEventListener('click', onNoInteract)
+    this.yesBtn.addEventListener('click', (event) => {
+      event.preventDefault()
+      this.hide()
+      this.onYes?.()
+    })
+  }
+  show() { this.stageEl.classList.add('is-active') }
+  hide() { this.stageEl.classList.remove('is-active') }
+  _growYes() {
+    this._yesScale = Math.min(this._yesScale + 0.06, 1.9)
+    gsap.to(this.yesBtn, { scale: this._yesScale, duration: 0.45, ease: 'back.out(2)' })
+  }
+  _reactNoButton() {
+    const behaviors = ['teleport', 'flee', 'spin', 'shrink', 'orbit']
+    let behavior = randChoice(behaviors)
+    while (behavior === this._lastBehavior && behaviors.length > 1) behavior = randChoice(behaviors)
+    this._lastBehavior = behavior
 
-    // Lighting
-    const ambient = new THREE.AmbientLight(0xffffff, 0.25);
-    scene.add(ambient);
-    const dir = new THREE.DirectionalLight(0xffe6f5, 0.9);
-    dir.position.set(50, 80, 100);
-    scene.add(dir);
-    const rim = new THREE.DirectionalLight(0xffb3e6, 0.45);
-    rim.position.set(-60, -40, -60);
-    scene.add(rim);
+    const bounds = this.actionsEl.getBoundingClientRect()
+    const maxX = bounds.width / 2 - 60
+    const maxY = bounds.height / 2 - 20
 
-    const controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.enabled = false;
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.06;
+    if (behavior === 'teleport') {
+      const x = randRange(-maxX, maxX), y = randRange(-maxY * 1.4, maxY * 1.4)
+      gsap.to(this.noBtn, { x, y, duration: 0.01, onComplete: () => gsap.fromTo(this.noBtn, { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.35, ease: 'back.out(3)' }) })
+    } else if (behavior === 'flee') {
+      gsap.to(this.noBtn, { x: randRange(-maxX, maxX), y: randRange(-maxY, maxY), duration: 0.5, ease: 'power3.out' })
+    } else if (behavior === 'spin') {
+      gsap.to(this.noBtn, { rotate: `+=${randInt(180, 720)}`, duration: 0.8, ease: 'power2.inOut' })
+    } else if (behavior === 'shrink') {
+      gsap.to(this.noBtn, { scale: randRange(0.35, 0.6), duration: 0.4, ease: 'power2.out', yoyo: true, repeat: 1, repeatDelay: 0.3 })
+    } else if (behavior === 'orbit') {
+      const radius = randRange(60, Math.min(maxX, maxY)), angle = randRange(0, Math.PI * 2)
+      gsap.to(this.noBtn, { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius, duration: 0.6, ease: 'sine.inOut' })
+    }
+  }
+}
 
-    const tunnelGroup = new THREE.Group();
-    scene.add(tunnelGroup);
+/* ============================== world/Slider ============================== */
+class Slider {
+  constructor({ onComplete }) {
+    this.onComplete = onComplete
+    this.stageEl = document.getElementById('stage-slider')
+    this.trackEl = document.getElementById('slider-track')
+    this.fillEl = document.getElementById('slider-fill')
+    this.handleEl = document.getElementById('slider-handle')
+    this.valueEl = document.getElementById('slider-value')
+    this._value = 0; this._dragging = false; this._completed = false
 
-    let wordMeshes = [];
-    let tunnelSpeed = 420;
-    let stateTime = 0;
-    let originalPositions = [];
-    let heartPositions = [];
+    const onMove = (event) => { if (this._dragging) this._updateFromEvent(event) }
+    const onUp = (event) => {
+      this._dragging = false
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
+      this.trackEl.releasePointerCapture?.(event.pointerId)
+    }
+    this.trackEl.addEventListener('pointerdown', (event) => {
+      this._dragging = true
+      this.trackEl.setPointerCapture(event.pointerId)
+      window.addEventListener('pointermove', onMove)
+      window.addEventListener('pointerup', onUp)
+      this._updateFromEvent(event)
+    })
+  }
+  show() { this._value = 0; this._completed = false; this._render(); this.stageEl.classList.add('is-active') }
+  hide() { this.stageEl.classList.remove('is-active') }
+  _updateFromEvent(event) {
+    const bounds = this.trackEl.getBoundingClientRect()
+    const ratio = clamp((event.clientX - bounds.left) / bounds.width, 0, 1)
+    this._value = Math.round(ratio * 100)
+    this._render()
+    if (this._value >= 100 && !this._completed) { this._completed = true; this._onFilled() }
+  }
+  _render() {
+    this.fillEl.style.width = `${this._value}%`
+    this.handleEl.style.left = `${this._value}%`
+    this.valueEl.textContent = `${this._value}%`
+  }
+  _onFilled() {
+    gsap.to(this.valueEl, { scale: 1.3, duration: 0.25, yoyo: true, repeat: 1, ease: 'power2.out' })
+    this.hide()
+    this.onComplete?.()
+  }
+}
 
-    function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+/* ============================== world/WordExplosion ============================== */
+const HEART_WORDS = ['love', 'always', 'forever', 'kiss', 'mine', 'my love', 'beautiful', 'together', 'destiny', 'heart', 'happy']
 
-    function buildTunnelWords(){
-      const materialFront = new THREE.MeshStandardMaterial({ color: 0xff3399, roughness: 0.3, metalness: 0.1 });
-      const materialSide = new THREE.MeshStandardMaterial({ color: 0x990055, roughness: 0.5 });
-      const materials = [materialFront, materialSide, materialSide, materialSide, materialSide, materialSide];
+class WordExplosion {
+  constructor(experience) { this.scene = experience.scene; this.renderer = experience.renderer }
 
-      const geometry = new THREE.BoxGeometry(16, 8, 3);
+  async play({ heartWordCount = 110, floatingWordCount = 24 } = {}) {
+    const loveMesh = await WordFactory.createWordMesh('LOVE', { size: 2.4, depth: 0.5, tone: 'red' })
+    loveMesh.scale.setScalar(0.001)
+    loveMesh.position.set(0, 0, 0)
+    this.scene.add(loveMesh)
 
-      let count = 0;
+    await new Promise((resolve) => gsap.to(loveMesh.scale, { x: 1, y: 1, z: 1, duration: 1.1, ease: 'power3.out', onComplete: resolve }))
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+
+    this.renderer.pulseBloom(1.4, 0.25)
+    setTimeout(() => this.renderer.pulseBloom(0.55, 0.9), 250)
+
+    await new Promise((resolve) => {
+      gsap.to(loveMesh.scale, { x: 0.001, y: 0.001, z: 0.001, duration: 0.6, ease: 'power2.in', onComplete: () => { this.scene.remove(loveMesh); loveMesh.geometry?.dispose?.(); resolve() } })
+    })
+
+    const total = heartWordCount + floatingWordCount
+    const allMeshes = await this._spawnFragments(total)
+    return { heartWords: allMeshes.slice(0, heartWordCount), floatingWords: allMeshes.slice(heartWordCount) }
+  }
+
+  async _spawnFragments(count) {
+    const meshes = []
+    for (let i = 0; i < count; i++) {
+      const text = HEART_WORDS[i % HEART_WORDS.length]
+      const tone = i % 3 === 0 ? 'white' : i % 3 === 1 ? 'pink' : 'red'
+      const mesh = await WordFactory.createWordMesh(text, { size: 0.34, depth: 0.1, tone })
+      mesh.userData.tone = tone
+      const spread = randOnSphere(0.6 + Math.random() * 2.2)
+      mesh.position.set(spread.x, spread.y, spread.z)
+      mesh.rotation.set(Math.random() * 0.6, Math.random() * Math.PI * 2, Math.random() * 0.6)
+      mesh.scale.setScalar(0.001)
+      this.scene.add(mesh)
+      meshes.push(mesh)
+      gsap.to(mesh.scale, { x: 1, y: 1, z: 1, duration: 0.6, delay: Math.random() * 0.4, ease: 'back.out(2)' })
+    }
+    return meshes
+  }
+}
+
+/* ============================== animations/HeartAnimation ============================== */
+class HeartAnimation {
+  constructor(lights) { this.lights = lights; this._tween = null; this._meshes = [] }
+  start(meshes) {
+    this._meshes = meshes
+    const scaleTarget = { value: 1 }
+    this._tween = gsap.to(scaleTarget, {
+      value: 1.045, duration: 0.55, ease: 'sine.inOut', yoyo: true, repeat: -1,
+      onUpdate: () => { for (const m of this._meshes) m.scale.setScalar(scaleTarget.value); this.lights?.pulse(scaleTarget.value) },
+    })
+  }
+}
+
+/* ============================== world/HeartBuilder ============================== */
+const BOUNDARY_SAMPLES = 240
+const HEART_SCALE = 1 / 5.4
+function heartBoundaryPoint(t) {
+  const x = 16 * Math.sin(t) ** 3
+  const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)
+  return { x: x * HEART_SCALE, y: y * HEART_SCALE }
+}
+function buildBoundary() {
+  const points = []
+  for (let i = 0; i < BOUNDARY_SAMPLES; i++) points.push(heartBoundaryPoint((i / BOUNDARY_SAMPLES) * Math.PI * 2))
+  return points
+}
+function isInsideHeart(boundary, x, y) {
+  let inside = false
+  for (let i = 0, j = boundary.length - 1; i < boundary.length; j = i++) {
+    const xi = boundary[i].x, yi = boundary[i].y, xj = boundary[j].x, yj = boundary[j].y
+    const intersects = (yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi
+    if (intersects) inside = !inside
+  }
+  return inside
+}
+function sampleFilledHeart(boundary) {
+  for (let attempt = 0; attempt < 60; attempt++) {
+    const x = randRange(-3, 3), y = randRange(-3, 3)
+    if (isInsideHeart(boundary, x, y)) return { x, y }
+  }
+  return { x: 0, y: 0 }
+}
+class HeartBuilder {
+  constructor(experience) {
+    this.scene = experience.scene
+    this.lights = experience.lights
+    this._boundary = buildBoundary()
+    this.heartAnimation = new HeartAnimation(this.lights)
+  }
+  async build(words, { onComplete } = {}) {
+    const layerZ = { red: 0.35, pink: 0, white: -0.35 }
+    const targets = words.map((mesh) => {
+      const { x, y } = sampleFilledHeart(this._boundary)
+      const tone = mesh.userData.tone ?? 'pink'
+      const z = layerZ[tone] + randRange(-0.06, 0.06)
+      return { mesh, position: { x, y, z } }
+    })
+
+    const timeline = gsap.timeline()
+    targets.forEach(({ mesh, position }, index) => {
+      const delay = randRange(0, 1.6) + index * 0.006
+      timeline.to(mesh.position, { x: position.x, y: position.y, z: position.z, duration: randRange(1.3, 2.0), ease: 'power3.inOut' }, delay)
+      timeline.to(mesh.rotation, { x: 0, y: 0, z: 0, duration: randRange(1.3, 2.0), ease: 'power3.inOut' }, delay)
+    })
+
+    await new Promise((resolve) => timeline.eventCallback('onComplete', resolve))
+    this.heartAnimation.start(words)
+    onComplete?.()
+  }
+}
+
+/* ============================== world/FloatingWords ============================== */
+class FloatingWords {
+  constructor() { this._items = [] }
+  setWords(meshes) {
+    this._items = meshes.map((mesh) => ({
+      mesh,
+      angleXY: Math.random() * Math.PI * 2,
+      speed: randRange(0.04, 0.12) * (Math.random() > 0.5 ? 1 : -1),
+      bobSpeed: randRange(0.3, 0.8),
+      bobAmount: randRange(0.15, 0.4),
+      spinSpeed: randRange(-0.3, 0.3),
+      basePosition: mesh.position.clone(),
+    }))
+  }
+  update(elapsed, delta) {
+    for (const item of this._items) {
+      item.angleXY += item.speed * delta
+      const x = item.basePosition.x + Math.cos(item.angleXY) * 0.6
+      const y = item.basePosition.y + Math.sin(elapsed * item.bobSpeed) * item.bobAmount
+      const z = item.basePosition.z + Math.sin(item.angleXY) * 0.6
+      item.mesh.position.set(x, y, z)
+      item.mesh.rotation.y += item.spinSpeed * delta
+    }
+  }
+}
+
+/* ============================== animations/IntroAnimation ============================== */
+class IntroAnimation {
+  constructor(tunnel) { this.tunnel = tunnel }
+  play({ onComplete } = {}) {
+    const proxy = { speed: 0, opacity: 0 }
+    const timeline = gsap.timeline({ onComplete: () => onComplete?.() })
+    timeline.to(proxy, { opacity: 1, duration: 0.8, ease: 'power1.out', onUpdate: () => this.tunnel.setOpacity(proxy.opacity) })
+    timeline.to(proxy, { speed: 34, duration: 2.1, ease: 'power2.in', onUpdate: () => this.tunnel.setSpeed(proxy.speed) }, 0.1)
+    timeline.to(proxy, { speed: 0, duration: 1.6, ease: 'power3.out', onUpdate: () => this.tunnel.setSpeed(proxy.speed) })
+    timeline.to(proxy, { opacity: 0, duration: 1.1, ease: 'power1.inOut', onUpdate: () => this.tunnel.setOpacity(proxy.opacity) }, '-=0.5')
+    return timeline
+  }
+  burst() {
+    const proxy = { opacity: 0 }
+    this.tunnel.setSpeed(18)
+    gsap.to(proxy, { opacity: 0.8, duration: 0.3, yoyo: true, repeat: 1, onUpdate: () => this.tunnel.setOpacity(proxy.opacity), onComplete: () => this.tunnel.setSpeed(0) })
+  }
+}
+
+/* ============================== core/Experience ============================== */
+class Experience {
+  constructor(canvas) {
+    this.canvas = canvas
+    this.sizes = new Sizes()
+    this.time = new Time()
+    this.scene = new SceneWrapper()
+    this.performance = new PerformanceMonitor(this.time)
+    this.camera = new Camera(this)
+    this.renderer = new Renderer(this)
+    this.lights = new Lights(this)
+    this.tunnel = new IntroTunnel(this)
+    this.matrixRain = new MatrixRain(this)
+    this.introAnimation = new IntroAnimation(this.tunnel)
+    this.wordExplosion = new WordExplosion(this)
+    this.heartBuilder = new HeartBuilder(this)
+    this.floatingWords = new FloatingWords()
+
+    this.sizes.on('resize', () => { this.camera.resize(); this.renderer.resize() })
+    this.time.on('tick', () => this._onTick())
+
+    this._boot()
+  }
+
+  async _boot() {
+    const barFill = document.getElementById('loading-bar-fill')
+    if (barFill) barFill.style.width = '35%'
+    await WordFactory.preload()
+    if (barFill) barFill.style.width = '100%'
+    setTimeout(() => document.getElementById('loading-screen')?.classList.add('is-hidden'), 200)
+    this.introAnimation.play({ onComplete: () => this._showQuestionOne() })
+  }
+
+  _showQuestionOne() {
+    this.questions = new Questions({ onYes: () => this._showSlider() })
+    this.questions.show()
+  }
+  _showSlider() {
+    this.slider = new Slider({ onComplete: () => this._onSliderComplete() })
+    this.slider.show()
+  }
+  _onSliderComplete() {
+    this.introAnimation.burst()
+    setTimeout(() => this._playWordExplosion(), 500)
+  }
+  async _playWordExplosion() {
+    const { heartWords, floatingWords } = await this.wordExplosion.play({ heartWordCount: 110, floatingWordCount: 24 })
+    this.floatingWords.setWords(floatingWords)
+    this.heartBuilder.build(heartWords, { onComplete: () => this.camera.enableControls() })
+  }
+  _onTick() {
+    const { delta, elapsed } = this.time
+    this.tunnel.update(delta)
+    this.matrixRain.update(delta)
+    this.floatingWords.update(elapsed, delta)
+    this.camera.update()
+    this.renderer.update()
+  }
+}
+
+const canvas = document.getElementById('webgl')
+window.__infinityLoveExperience = new Experience(canvas)
+</script>
+</body>
+</html>
