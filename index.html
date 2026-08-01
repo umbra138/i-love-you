@@ -1,922 +1,560 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Do you love me?</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
-
-    <style>
-        *, *::before, *::after {
-            box-sizing: border-box;
-        }
-
-        body {
-            background-color: #000000;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            height: 100vh;
-            font-family: 'Press Start 2P', monospace;
-        }
-        .wrapper {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-        }
-        .pixel-window {
-            background-color: #000000;
-            border: 6px double #ffffff;
-            width: 400px;
-            max-width: 90%;
-            box-shadow: 12px 12px 0px #1a1a1a;
-            transition: transform 0.04s linear;
-        }
-
-        .window-bar {
-            border-bottom: 4px solid #ffffff;
-            padding: 10px;
-            display: flex;
-            gap: 6px;
-        }
-
-        .window-dot {
-            width: 8px;
-            height: 8px;
-            border: 2px solid #ffffff;
-        }
-
-        .window-body {
-            padding: 50px 20px;
-            text-align: center;
-        }
-
-        .title-text {
-            color: #ffffff;
-            font-size: 13pt;
-            line-height: 1.6;
-            margin: 0 0 45px 0;
-            font-weight: normal;
-        }
-
-        .btn-container {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-        }
-        .pixel-btn {
-            background: transparent;
-            color: #ffffff;
-            border: 4px outset #ffffff;
-            padding: 12px 24px;
-            font-size: 11pt;
-            cursor: pointer;
-            font-family: 'Press Start 2P', monospace;
-            outline: none;
-        }
-
-        .pixel-btn:hover {
-            background: #ffffff;
-            color: #000000;
-            border: 4px inset #ffffff;
-        }
-        .pixel-smiler {
-            display: none;
-            color: #ffffff;
-            font-size: 45pt;
-            text-align: center;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 20;
-        }
-        .neon-center-set {
-            display: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            flex-direction: column;
-            align-items: center;
-            gap: 0px;
-            z-index: 6;
-            user-select: none;
-            pointer-events: none;
-        }
-        .neon-text {
-            color: #ffccff;
-            font-size: 26pt;
-            text-align: center;
-            margin-bottom: 5px;
-            text-shadow:
-                0 0 5px #ffccff,
-                0 0 15px #ff3399,
-                0 0 30px #ff3399;
-        }
-        .neon-heart-svg {
-            width: 140px;
-            height: 140px;
-            filter: drop-shadow(0 0 4px #ffccff)
-                    drop-shadow(0 0 10px #ff3399)
-                    drop-shadow(0 0 25px #ff3399)
-                    drop-shadow(0 0 45px #ff3399);
-        }
-
-        #matrixCanvas {
-            display: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-        }
-
-        /* ===== Nova sequência: porcentagem / confirmação / animação final ===== */
-        .modal-overlay-love {
-            position: fixed;
-            inset: 0;
-            display: none;
-            z-index: 50;
-        }
-
-        .slider-track {
-            position: relative;
-            width: 100%;
-            height: 34px;
-            background: #1a0014;
-            border: 3px solid #ff66cc;
-            margin: 22px 0 12px 0;
-            touch-action: none;
-            cursor: pointer;
-        }
-
-        .slider-fill {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #ff3399, #ffccff);
-            box-shadow: 0 0 10px #ff3399, 0 0 20px #ff66cc;
-        }
-
-        .slider-thumb {
-            position: absolute;
-            top: 50%;
-            left: 0%;
-            width: 22px;
-            height: 22px;
-            background: #fff;
-            border: 3px solid #ff3399;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            box-shadow: 0 0 10px #ff3399, 0 0 18px #ff66cc;
-            pointer-events: none;
-        }
-
-        .percent-label {
-            color: #ffccff;
-            font-size: 16pt;
-            margin: 8px 0 28px 0;
-            text-shadow: 0 0 8px #ff3399, 0 0 16px #ff3399;
-        }
-
-        #confirmNoBtn {
-            position: relative;
-            transition: left 0.16s ease, top 0.16s ease;
-        }
-
-        #fullscreenAnim {
-            position: fixed;
-            inset: 0;
-            background: #000000;
-            display: none;
-            overflow: hidden;
-            touch-action: none;
-            z-index: 100;
-            perspective: 1000px;
-            perspective-origin: 50% 50%;
-        }
-
-        #loveWorld {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            width: 0;
-            height: 0;
-            transform-style: preserve-3d;
-            will-change: transform;
-        }
-
-        .love-word {
-            position: absolute;
-            top: 0;
-            left: 0;
-            color: #ffccff;
-            font-family: 'Dancing Script', cursive;
-            font-weight: 700;
-            white-space: nowrap;
-            pointer-events: none;
-            user-select: none;
-            text-shadow:
-                0 0 6px #ffccff,
-                0 0 14px #ff3399,
-                0 0 26px #ff3399;
-            will-change: transform, opacity;
-            transition: color 0.9s ease, text-shadow 0.9s ease;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Do you love me?</title>
+  <style>
+    html,body{height:100%;margin:0;background:#000;overflow:hidden;font-family:Arial,Helvetica,sans-serif}
+    /* UI overlays */
+    .center-ui{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:20;pointer-events:none}
+    .panel{background:#000;border:5px double #fff;padding:28px 22px;text-align:center;pointer-events:auto;box-shadow:10px 10px 0 rgba(0,0,0,0.6);max-width:92%;color:#fff}
+    .title{font-family:'Press Start 2P',monospace;font-size:14px;margin:0 0 18px 0}
+    .btn-row{display:flex;gap:24px;justify-content:center}
+    .btn{background:transparent;color:#fff;border:4px outset #fff;padding:10px 18px;cursor:pointer;font-family:'Press Start 2P',monospace}
+    .btn:hover{background:#fff;color:#000;border:4px inset #fff}
+    .hidden{display:none}
+    /* percent modal elements */
+    .slider{width:360px;height:34px;background:#150014;border:3px solid #ff66cc;margin:14px auto;position:relative}
+    .fill{position:absolute;left:0;top:0;height:100%;width:0;background:linear-gradient(90deg,#ff3399,#ffccff)}
+    .thumb{position:absolute;left:0;top:50%;transform:translate(-50%,-50%);width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid #ff3399}
+    .percent{color:#ffccff;margin-top:8px;font-size:16px}
+    /* fullscreen canvas
+       the three.js canvas will be appended to body and sized to cover viewport */
+  </style>
+  <!-- Font for UI (keeps original aesthetic) -->
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
-
-    <div class="wrapper" id="viewInterface">
-        <div class="pixel-window" id="popupWindow">
-            <div class="window-bar">
-                <span class="window-dot"></span>
-                <span class="window-dot"></span>
-                <span class="window-dot"></span>
-            </div>
-            <div class="window-body">
-                <h1 class="title-text">Do you love me?</h1>
-                <div class="btn-container">
-                    <button class="pixel-btn" onclick="triggerYes()">Yes</button>
-                    <button class="pixel-btn" onclick="triggerNo()">No</button>
-                </div>
-            </div>
-        </div>
+  <!-- UI: initial question -->
+  <div class="center-ui" id="uiStart">
+    <div class="panel" id="panelStart">
+      <h1 class="title">DO YOU LOVE ME?</h1>
+      <div class="btn-row">
+        <button class="btn" id="btnYes">YES</button>
+        <button class="btn" id="btnNo">NO</button>
+      </div>
     </div>
+  </div>
 
-    <div class="pixel-smiler" id="smileContainer">:)</div>
-
-    <!-- Modal: Quanto você me ama? -->
-    <div class="wrapper modal-overlay-love" id="percentOverlay">
-        <div class="pixel-window">
-            <div class="window-bar">
-                <span class="window-dot"></span>
-                <span class="window-dot"></span>
-                <span class="window-dot"></span>
-            </div>
-            <div class="window-body">
-                <h1 class="title-text" style="margin-bottom:10px;">Quanto você me ama?</h1>
-                <div class="slider-track" id="sliderTrack">
-                    <div class="slider-fill" id="sliderFill"></div>
-                    <div class="slider-thumb" id="sliderThumb"></div>
-                </div>
-                <div class="percent-label" id="percentLabel">0%</div>
-                <div class="btn-container">
-                    <button class="pixel-btn" id="percentContinueBtn">Continuar</button>
-                </div>
-            </div>
-        </div>
+  <!-- Percent modal -->
+  <div class="center-ui hidden" id="uiPercent">
+    <div class="panel">
+      <h1 class="title" style="font-size:13px">QUANTO VOCÊ ME AMA?</h1>
+      <div class="slider" id="slider">
+        <div class="fill" id="fill"></div>
+        <div class="thumb" id="thumb"></div>
+      </div>
+      <div class="percent" id="pct">0%</div>
+      <div style="margin-top:12px"><button class="btn" id="btnContinue">Continuar</button></div>
     </div>
+  </div>
 
-    <!-- Modal: confirmação da porcentagem -->
-    <div class="wrapper modal-overlay-love" id="confirmOverlay">
-        <div class="pixel-window">
-            <div class="window-bar">
-                <span class="window-dot"></span>
-                <span class="window-dot"></span>
-                <span class="window-dot"></span>
-            </div>
-            <div class="window-body">
-                <h1 class="title-text" id="confirmTitle">Você realmente me ama 0%?</h1>
-                <div class="btn-container">
-                    <button class="pixel-btn" id="confirmYesBtn">SIM</button>
-                    <button class="pixel-btn" id="confirmNoBtn">NÃO</button>
-                </div>
-            </div>
-        </div>
+  <!-- Confirm modal -->
+  <div class="center-ui hidden" id="uiConfirm">
+    <div class="panel" id="panelConfirm">
+      <h1 class="title" id="confirmText">VOCÊ REALMENTE ME AMA 0%?</h1>
+      <div class="btn-row" style="margin-top:18px">
+        <button class="btn" id="confirmYes">SIM</button>
+        <button class="btn" id="confirmNo">NÃO</button>
+      </div>
     </div>
+  </div>
 
-    <!-- Animação final em tela cheia: túnel -> galáxia -> coração -->
-    <div id="fullscreenAnim">
-        <div id="loveWorld"></div>
-    </div>
+  <!-- three.js canvas will be injected programmatically -->
 
-    <div class="neon-center-set" id="neonSet">
-        <div class="neon-text">LOVE YOU</div>
+  <script type="module">
+    // Reescrita completa: three.js module-based implementation
+    import * as THREE from 'https://unpkg.com/three@0.154.0/build/three.module.js';
+    import { OrbitControls } from 'https://unpkg.com/three@0.154.0/examples/jsm/controls/OrbitControls.js';
+    import { FontLoader } from 'https://unpkg.com/three@0.154.0/examples/jsm/loaders/FontLoader.js';
+    import { TextGeometry } from 'https://unpkg.com/three@0.154.0/examples/jsm/geometries/TextGeometry.js';
 
-        <svg class="neon-heart-svg" viewBox="0 0 24 24" fill="#ffccff">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-        </svg>
-    </div>
+    // --- Configuráveis ---
+    const WORD = 'LOVE ME';
+    const WORD_COUNT = 280; // centenas, equilibrando qualidade/performance
+    const TUNNEL_RADIUS = Math.min(window.innerWidth, window.innerHeight) * 0.35;
+    const TUNNEL_LENGTH = 4000; // comprimento cíclico em unidades
+    const WORD_HEIGHT = 8; // font size
+    const EXTRUDE_DEPTH = 2.8; // depth extrusion
+    const BEVEL_SIZE = 0.35;
+    const TUNNEL_COLUMN_COUNT = 22; // number of vertical columns around camera
+    const WORDS_PER_COLUMN = Math.ceil(WORD_COUNT / TUNNEL_COLUMN_COUNT);
 
-    <canvas id="matrixCanvas"></canvas>
+    // --- UI refs ---
+    const uiStart = document.getElementById('uiStart');
+    const uiPercent = document.getElementById('uiPercent');
+    const uiConfirm = document.getElementById('uiConfirm');
+    const btnYes = document.getElementById('btnYes');
+    const btnNo = document.getElementById('btnNo');
+    const slider = document.getElementById('slider');
+    const fill = document.getElementById('fill');
+    const thumb = document.getElementById('thumb');
+    const pct = document.getElementById('pct');
+    const btnContinue = document.getElementById('btnContinue');
+    const confirmText = document.getElementById('confirmText');
+    const confirmYes = document.getElementById('confirmYes');
+    const confirmNo = document.getElementById('confirmNo');
 
-    <script>
-        const canvas = document.getElementById('matrixCanvas');
-        const ctx = canvas.getContext('2d');
-        let animationId;
+    // --- three.js basic setup ---
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x000000);
 
-        const textToRepeat = "YOU LOVE";
-        const fontSize = 12;
-        const lineHeight = fontSize * 1.6;   // vertical spacing between stacked copies of the text
-        let columns = [];
-        let rowsNeeded = 0;
+    const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 10000);
+    camera.position.set(0, 0, 0); // camera will move forward along -z axis
 
-        function initMatrix() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    document.body.appendChild(renderer.domElement);
 
-            ctx.font = `${fontSize}px 'Press Start 2P', monospace`;
-            const textWidth = ctx.measureText(textToRepeat).width;
-            const columnWidth = textWidth + fontSize * 1.5; // compact horizontal gap between columns
-            const columnCount = Math.ceil(canvas.width / columnWidth) + 1;
-            rowsNeeded = Math.ceil(canvas.height / lineHeight) + 2;
+    // Lighting - designed to emphasize extrusion depth
+    const ambient = new THREE.AmbientLight(0xffffff, 0.25);
+    scene.add(ambient);
+    const dir = new THREE.DirectionalLight(0xffe6f5, 0.9);
+    dir.position.set(50, 80, 100);
+    scene.add(dir);
+    const rim = new THREE.DirectionalLight(0xffb3e6, 0.45);
+    rim.position.set(-60, -40, -60);
+    scene.add(rim);
 
-            columns = [];
-            for (let i = 0; i < columnCount; i++) {
-                columns.push({
-                    x: i * columnWidth,
-                    offset: Math.random() * canvas.height, // random start so columns aren't in sync
-                    speed: 1 + Math.random() * 1.5          // independent speed per column
-                });
-            }
+    // Controls are disabled until heart formed
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enabled = false;
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.autoRotate = false;
+
+    // Groups
+    const tunnelGroup = new THREE.Group();
+    const roamGroup = new THREE.Group(); // after explosion words added here
+    const heartGroup = new THREE.Group();
+    scene.add(tunnelGroup);
+    scene.add(roamGroup);
+    scene.add(heartGroup);
+
+    // State
+    let font = null;
+    let baseGeometry = null;
+    let wordMeshes = [];
+    let animationState = 'idle'; // 'idle' | 'tunnel' | 'explode' | 'gathering' | 'heart' | 'done'
+
+    // Camera travel
+    let cameraZ = -1200; // start a bit back so tunnel ahead
+    camera.position.z = cameraZ;
+    let tunnelSpeed = 420; // units per second camera forward
+
+    // Utility easing
+    function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+    function easeInOutSine(t){ return -(Math.cos(Math.PI * t) - 1) / 2; }
+
+    // Load font and build word geometry once
+    const loader = new FontLoader();
+    loader.load('https://unpkg.com/three@0.154.0/examples/fonts/helvetiker_regular.typeface.json', (f) => {
+      font = f;
+      buildBaseGeometry();
+      buildTunnelWords();
+      // Render a single frame to avoid blank screen; UI remains overlaid
+      renderer.render(scene, camera);
+    });
+
+    function buildBaseGeometry(){
+      // Use TextGeometry to create a single base geometry for "LOVE ME" with extrusion and bevel
+      const params = {
+        font: font,
+        size: WORD_HEIGHT,
+        height: EXTRUDE_DEPTH,
+        curveSegments: 8,
+        bevelEnabled: true,
+        bevelThickness: BEVEL_SIZE,
+        bevelSize: BEVEL_SIZE * 0.6,
+        bevelOffset: 0,
+        bevelSegments: 3
+      };
+      baseGeometry = new TextGeometry(WORD, params);
+      baseGeometry.computeBoundingBox();
+      baseGeometry.computeVertexNormals();
+
+      // Center geometry around its origin so placement is intuitive
+      const bbox = baseGeometry.boundingBox;
+      const xMid = -0.5 * (bbox.max.x + bbox.min.x);
+      const yMid = -0.5 * (bbox.max.y + bbox.min.y);
+      baseGeometry.translate(xMid, yMid, 0);
+    }
+
+    function buildTunnelWords(){
+      // Create many meshes positioned in columns around the camera along z axis
+      const materialFront = new THREE.MeshStandardMaterial({color:0xffb3e6, metalness:0.15, roughness:0.45});
+      const materialBack = new THREE.MeshStandardMaterial({color:0xff66cc, metalness:0.05, roughness:0.6});
+
+      wordMeshes = [];
+
+      const angleStep = (Math.PI * 2) / TUNNEL_COLUMN_COUNT;
+
+      let created = 0;
+      for (let c = 0; c < TUNNEL_COLUMN_COUNT; c++){
+        const angle = c * angleStep;
+        const cos = Math.cos(angle);
+        const sin = Math.sin(angle);
+
+        for (let r = 0; r < WORDS_PER_COLUMN && created < WORD_COUNT; r++){
+          const g = baseGeometry.clone();
+          const m = new THREE.Mesh(g, (Math.random() < 0.5) ? materialFront : materialBack);
+
+          // tightly stacked vertically; spacing chosen so columns are continuous
+          const verticalSpacing = WORD_HEIGHT * 1.05; // slightly more than font size to avoid overlap
+          // z position distributed along [0, TUNNEL_LENGTH)
+          const z = Math.random() * TUNNEL_LENGTH;
+          // radial offset slightly varied
+          const radial = TUNNEL_RADIUS * (0.9 + Math.random() * 0.18);
+
+          m.position.set(cos * radial, (r - WORDS_PER_COLUMN/2) * verticalSpacing, z);
+          // rotate to face roughly toward center, but keep upright so words readable while passing
+          const lookAt = new THREE.Vector3(0,0,z);
+          m.lookAt(lookAt);
+
+          tunnelGroup.add(m);
+          wordMeshes.push({mesh:m, state:'tunnel'});
+          created++;
         }
+      }
 
-        function drawMatrix() {
-            // Solid clear each frame keeps the repeated text crisp (no smeared trail)
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // If we still have fewer than WORD_COUNT, distribute extras randomly in tunnelGroup
+      while (created < WORD_COUNT){
+        const g = baseGeometry.clone();
+        const m = new THREE.Mesh(g, Math.random() < 0.5 ? materialFront : materialBack);
+        const z = Math.random() * TUNNEL_LENGTH;
+        const theta = Math.random() * Math.PI * 2;
+        const radial = TUNNEL_RADIUS * (0.8 + Math.random() * 0.4);
+        const vertical = (Math.random() - 0.5) * WORDS_PER_COLUMN * WORD_HEIGHT;
+        m.position.set(Math.cos(theta)*radial, vertical, z);
+        m.lookAt(new THREE.Vector3(0,0,z));
+        tunnelGroup.add(m);
+        wordMeshes.push({mesh:m, state:'tunnel'});
+        created++;
+      }
+    }
 
-            ctx.font = `${fontSize}px 'Press Start 2P', monospace`;
-            ctx.fillStyle = 'rgba(255, 51, 153, 0.45)';
+    // --- UI interactions ---
+    btnYes.addEventListener('click', ()=>{
+      // keep camera static; hide start UI and proceed to percent modal after brief fade effect
+      uiStart.classList.add('hidden');
+      uiPercent.classList.remove('hidden');
+    });
 
-            const wrap = canvas.height + lineHeight;
+    btnNo.addEventListener('click', ()=>{
+      // simple visual reaction: shake panel then show tunnel quickly
+      panelShake(panelStart);
+      // proceed to show tunnel as in original No behavior
+      setTimeout(()=>{
+        uiStart.classList.add('hidden');
+        startTunnelSequence();
+      }, 220);
+    });
 
-            for (let i = 0; i < columns.length; i++) {
-                const col = columns[i];
-                col.offset += col.speed;
-                if (col.offset > wrap) col.offset -= wrap;
+    // Slider logic (pointer)
+    function setPercentFromClientX(clientX){
+      const rect = slider.getBoundingClientRect();
+      let ratio = (clientX - rect.left) / rect.width;
+      ratio = Math.max(0, Math.min(1, ratio));
+      const value = Math.round(ratio * 100);
+      fill.style.width = value + '%';
+      thumb.style.left = value + '%';
+      pct.textContent = value + '%';
+      confirmText.textContent = `VOCÊ REALMENTE ME AMA ${value}%?`;
+    }
+    let dragging = false;
+    slider.addEventListener('pointerdown', (e)=>{ dragging=true; slider.setPointerCapture(e.pointerId); setPercentFromClientX(e.clientX); });
+    slider.addEventListener('pointermove', (e)=>{ if(dragging) setPercentFromClientX(e.clientX); });
+    slider.addEventListener('pointerup', (e)=>{ dragging=false; try{slider.releasePointerCapture(e.pointerId);}catch(e){} });
+    slider.addEventListener('pointercancel', ()=>{ dragging=false });
 
-                // Stack many copies of the text down the full column, wrapping seamlessly
-                for (let r = 0; r < rowsNeeded; r++) {
-                    const y = ((r * lineHeight + col.offset) % wrap) - lineHeight;
-                    ctx.fillText(textToRepeat, col.x, y);
-                }
-            }
-            animationId = requestAnimationFrame(drawMatrix);
+    btnContinue.addEventListener('click', ()=>{
+      uiPercent.classList.add('hidden');
+      uiConfirm.classList.remove('hidden');
+    });
+
+    // make "NÃO" button flee gently within the modal (but remain clickable if user persistent)
+    let confirmNoIsFixed = false;
+    function fleeNo(e){
+      e.preventDefault();
+      const el = confirmNo;
+      if(!confirmNoIsFixed){
+        el.style.position = 'fixed';
+        const r = el.getBoundingClientRect();
+        el.style.left = r.left + 'px';
+        el.style.top = r.top + 'px';
+        el.style.margin = '0';
+        confirmNoIsFixed = true;
+      }
+      const w = el.offsetWidth; const h = el.offsetHeight;
+      const nx = 8 + Math.random() * (window.innerWidth - w - 16);
+      const ny = 8 + Math.random() * (window.innerHeight - h - 16);
+      el.style.left = nx + 'px'; el.style.top = ny + 'px';
+    }
+    confirmNo.addEventListener('pointerenter', fleeNo);
+    confirmNo.addEventListener('pointerdown', fleeNo);
+
+    confirmYes.addEventListener('click', ()=>{
+      uiConfirm.classList.add('hidden');
+      // after confirmation, start the tunnel sequence (camera remains static until heart assembled)
+      startTunnelSequence();
+    });
+
+
+    // --- Sequence orchestration ---
+    let lastTime = performance.now();
+    function startTunnelSequence(){
+      animationState = 'tunnel';
+      // ensure tunnelGroup visible and camera remains fixed orientation
+      cameraZ = -1200; camera.position.z = cameraZ;
+      // show the scene by ensuring renderer canvas is present (already appended)
+      // Start animation loop
+      lastTime = performance.now();
+      animate();
+
+      // We'll run the tunnel for a fixed duration (e.g., 6 seconds), then trigger the soft explosion
+      setTimeout(()=>{
+        // begin gentle transition to explosion phase
+        animationState = 'explode';
+        prepareExplosion();
+      }, 6000);
+    }
+
+    // tunnel loop behavior: camera moves forward, words wrap seamlessly
+    function updateTunnel(dt){
+      // move camera forward along +z (so words appear to move toward camera)
+      cameraZ += tunnelSpeed * dt;
+      camera.position.z = cameraZ;
+
+      // Keep the camera looking straight forward (no rotation)
+      camera.rotation.set(0,0,0);
+
+      // For each mesh, compare its world z to camera and wrap if behind
+      for (const w of wordMeshes){
+        if(w.state !== 'tunnel') continue;
+        // world position z in same space as camera because we used positions directly
+        const z = w.mesh.position.z;
+        // as cameraZ increases, words with z < cameraZ - margin have passed behind camera
+        if(z < cameraZ - 80){
+          // move this word forward by adding TUNNEL_LENGTH so it reappears ahead
+          w.mesh.position.z = z + TUNNEL_LENGTH;
         }
+        // Optionally add a slight local rotation to create 'pass-around' feeling but NO camera rotation
+        // We'll use orientation so words face camera's forward direction
+        w.mesh.lookAt(new THREE.Vector3(camera.position.x, camera.position.y, w.mesh.position.z + 200));
+      }
+    }
 
-        window.addEventListener('resize', () => {
-            if (canvas.style.display === 'block') {
-                initMatrix();
-            }
-        });
+    // --- Explosion (soft spread) ---
+    function prepareExplosion(){
+      // Transition words from tunnelGroup to roamGroup, each word gets a velocity and target later
+      animationState = 'explode';
+      // Move all tunnel meshes into roamGroup, preserving world transforms
+      wordMeshes.forEach(w => {
+        // convert position from tunnelGroup local to world (they are in tunnelGroup but positions are in local coords)
+        const worldPos = w.mesh.getWorldPosition(new THREE.Vector3());
+        w.mesh.position.copy(worldPos);
+        scene.add(w.mesh);
+        roamGroup.add(w.mesh);
 
-        function triggerYes() {
-            cancelAnimationFrame(animationId);
-            document.getElementById('viewInterface').style.display = 'none';
-            document.getElementById('smileContainer').style.display = 'block';
-            document.getElementById('neonSet').style.display = 'none';
-            canvas.style.display = 'none';
+        // assign physics-like velocity small so they drift outward slowly
+        w.vx = (Math.random() - 0.5) * 12; // smaller velocities
+        w.vy = (Math.random() - 0.5) * 12;
+        w.vz = (Math.random() - 0.5) * 18 + 20; // push forward away from camera
+        w.state = 'roam';
+      });
 
-            // Depois do sorriso, inicia a nova sequência interativa
-            setTimeout(() => {
-                document.getElementById('smileContainer').style.display = 'none';
-                showPercentModal();
-            }, 1000);
+      // After a short duration of gentle spreading, begin gathering to heart
+      setTimeout(()=>{
+        animationState = 'gathering';
+        prepareGathering();
+      }, 900); // explosion extremely smooth, short
+    }
+
+    // --- Generate target positions for heart outline filled by words ---
+    function heartParam(t){
+      // classic heart parametric curve scaled
+      const x = 16 * Math.pow(Math.sin(t), 3);
+      const y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
+      return new THREE.Vector2(x, y);
+    }
+
+    function prepareGathering(){
+      // Generate many points along heart outline and surface (we'll generate WORD_COUNT targets)
+      const w = Math.min(window.innerWidth, window.innerHeight) * 0.8;
+      const scale = w / 32; // tune scale so heart fits nicely
+      const targets = [];
+
+      // We'll distribute points along outline with some radial thickness (so words fill the heart)
+      for(let i=0;i<WORD_COUNT;i++){
+        const angle = Math.random() * Math.PI * 2;
+        const t = (i / WORD_COUNT) * Math.PI * 2;
+        const base = heartParam(t + (Math.random()-0.5)*0.02);
+        // radial jitter for filling
+        const jitterR = (Math.random() - 0.5) * 2.4;
+        const px = (base.x + jitterR * Math.cos(angle)) * scale;
+        const py = (base.y + jitterR * Math.sin(angle)) * scale * -1; // invert y so heart points downwards appropriately
+        const pz = (Math.random() - 0.5) * 120; // depth spread so heart has thickness
+        targets.push(new THREE.Vector3(px, py, pz - 100)); // offset a bit forward
+      }
+
+      // Assign each roaming word a target with staggered timing
+      const now = performance.now();
+      for(let i=0;i<wordMeshes.length;i++){
+        const wmesh = wordMeshes[i];
+        wmesh.state = 'gathering';
+        wmesh.startPos = wmesh.mesh.position.clone();
+        wmesh.targetPos = targets[i];
+        wmesh.startTime = now + Math.random() * 800; // slight staggering
+        wmesh.duration = 1600 + Math.random() * 900;
+      }
+
+      // After assigning, set animationState to gathering so update loop will do interpolation
+      animationState = 'gathering';
+    }
+
+    // --- Heart formation completed callback ---
+    function onHeartFormed(){
+      animationState = 'heart';
+      // place all words into heartGroup (but they are already positioned in scene)
+      wordMeshes.forEach(w => {
+        heartGroup.add(w.mesh);
+        // tiny random phase for oscillation
+        w.oscPhase = Math.random() * Math.PI * 2;
+      });
+
+      // Start slow beating and after small delay enable camera movement
+      startBeating();
+      setTimeout(()=>{
+        enableCameraMovement();
+      }, 800);
+    }
+
+    // --- gentle per-word oscillation and heart beat ---
+    let heartBeatStart = 0;
+    function startBeating(){
+      heartBeatStart = performance.now();
+    }
+
+    function updateHeart(dt, now){
+      // gentle per-word oscillation
+      for(const w of wordMeshes){
+        // tiny oscillation around base position
+        const mesh = w.mesh;
+        const phase = (now * 0.0004) + (w.oscPhase || 0);
+        mesh.position.x += Math.sin(phase) * 0.0005; // extremely subtle
+        mesh.position.y += Math.cos(phase*1.1) * 0.0006;
+        // small rotation wobble
+        mesh.rotation.z += Math.sin(phase) * 0.0009;
+      }
+
+      // heart beat: uniform scale of heartGroup
+      const t = ((now - heartBeatStart) % 4000) / 4000; // 4s period
+      const beat = 1 + 0.015 * Math.sin(t * Math.PI * 2); // very subtle
+      heartGroup.scale.set(beat, beat, beat);
+    }
+
+    function enableCameraMovement(){
+      controls.enabled = true;
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = 0.08; // very slow
+      // Make an initial smooth camera fly-out to show the heart
+      // animate camera on a short path
+      const start = camera.position.clone();
+      const targetPos = new THREE.Vector3(0, 20, cameraZ - 420);
+      const t0 = performance.now();
+      const dur = 1200;
+      function fly(){
+        const now = performance.now();
+        const tt = Math.min(1, (now - t0)/dur);
+        const e = easeInOutSine(tt);
+        camera.position.lerpVectors(start, targetPos, e);
+        if(tt < 1) requestAnimationFrame(fly);
+      }
+      fly();
+    }
+
+    // --- Panel shake helper for No button ---
+    function panelShake(el){
+      if(!el) return;
+      el.style.transition = 'transform 0.04s linear';
+      el.style.transform = 'translate(6px,4px)';
+      setTimeout(()=>el.style.transform='translate(-6px,-4px)',40);
+      setTimeout(()=>el.style.transform='translate(6px,-4px)',80);
+      setTimeout(()=>el.style.transform='',140);
+    }
+
+    // --- Core animation loop ---
+    let heartFormCheckDone = false;
+    function animate(now){
+      requestAnimationFrame(animate);
+      const tNow = now || performance.now();
+      const dt = Math.min(0.05, (tNow - lastTime)/1000);
+      lastTime = tNow;
+
+      if(animationState === 'tunnel'){
+        updateTunnel(dt);
+      }else if(animationState === 'explode'){
+        // apply gentle drift to roamGroup words and slightly reduce velocity
+        for(const w of wordMeshes){
+          if(w.state === 'roam'){
+            // simple physics integration for drift
+            w.vx *= 0.995; w.vy *= 0.995; w.vz *= 0.995;
+            w.mesh.position.x += w.vx * dt;
+            w.mesh.position.y += w.vy * dt;
+            w.mesh.position.z += w.vz * dt;
+            // small rotation
+            w.mesh.rotation.x += 0.02 * dt * (Math.random()-0.5);
+            w.mesh.rotation.y += 0.02 * dt * (Math.random()-0.5);
+          }
         }
-
-        function triggerNo() {
-            const frame = document.getElementById('popupWindow');
-            frame.style.transform = 'translate(4px, 4px)';
-            setTimeout(() => frame.style.transform = 'translate(-4px, -4px)', 40);
-            setTimeout(() => frame.style.transform = 'translate(4px, -4px)', 80);
-
-            setTimeout(() => {
-                document.getElementById('viewInterface').style.display = 'none';
-                canvas.style.display = 'block';
-                initMatrix();
-                setTimeout(() => canvas.style.opacity = '1', 10);
-
-                drawMatrix();
-                document.getElementById('neonSet').style.display = 'flex';
-            }, 130);
+      }else if(animationState === 'gathering'){
+        let allArrived = true;
+        const nowMs = performance.now();
+        for(const w of wordMeshes){
+          if(w.state !== 'gathering') continue;
+          const tt = Math.max(0, Math.min(1, (nowMs - w.startTime)/w.duration));
+          const e = easeInOutSine(tt);
+          const p = new THREE.Vector3().lerpVectors(w.startPos, w.targetPos, e);
+          w.mesh.position.copy(p);
+          // orient with a gentle facing towards camera center (so depth visible)
+          w.mesh.lookAt(new THREE.Vector3(0,0,camera.position.z - 50));
+          if(tt < 1) allArrived = false;
         }
-
-        /* ================================================================
-           NOVA SEQUÊNCIA:
-           SIM -> "Quanto você me ama?" (barra) -> confirmação (NÃO foge)
-           -> túnel "I LOVE YOU" -> galáxia -> toque forma um coração
-           ================================================================ */
-
-        // ---------- Barra de porcentagem ----------
-        let currentPercent = 0;
-        let sliderDragging = false;
-        const sliderTrack = document.getElementById('sliderTrack');
-        const sliderFill = document.getElementById('sliderFill');
-        const sliderThumb = document.getElementById('sliderThumb');
-        const percentLabel = document.getElementById('percentLabel');
-
-        function setPercentFromClientX(clientX) {
-            const rect = sliderTrack.getBoundingClientRect();
-            let ratio = (clientX - rect.left) / rect.width;
-            ratio = Math.min(1, Math.max(0, ratio));
-            currentPercent = Math.round(ratio * 100);
-            sliderFill.style.width = currentPercent + '%';
-            sliderThumb.style.left = currentPercent + '%';
-            percentLabel.textContent = currentPercent + '%';
+        if(allArrived && !heartFormCheckDone){
+          heartFormCheckDone = true;
+          setTimeout(onHeartFormed, 300); // small settle
         }
-
-        sliderTrack.addEventListener('pointerdown', (e) => {
-            sliderDragging = true;
-            sliderTrack.setPointerCapture(e.pointerId);
-            setPercentFromClientX(e.clientX);
-        });
-        sliderTrack.addEventListener('pointermove', (e) => {
-            if (sliderDragging) setPercentFromClientX(e.clientX);
-        });
-        sliderTrack.addEventListener('pointerup', (e) => {
-            sliderDragging = false;
-            try { sliderTrack.releasePointerCapture(e.pointerId); } catch (err) {}
-        });
-        sliderTrack.addEventListener('pointercancel', () => {
-            sliderDragging = false;
-        });
-
-        function showPercentModal() {
-            currentPercent = 0;
-            sliderFill.style.width = '0%';
-            sliderThumb.style.left = '0%';
-            percentLabel.textContent = '0%';
-            document.getElementById('percentOverlay').style.display = 'flex';
-        }
-
-        document.getElementById('percentContinueBtn').addEventListener('click', () => {
-            openConfirmModal(currentPercent);
-        });
-
-        // ---------- Modal de confirmação (botão NÃO foge) ----------
-        const confirmNoBtn = document.getElementById('confirmNoBtn');
-
-        function openConfirmModal(percent) {
-            document.getElementById('confirmTitle').textContent = `Você realmente me ama ${percent}%?`;
-            document.getElementById('percentOverlay').style.display = 'none';
-            confirmNoBtn.style.position = 'relative';
-            confirmNoBtn.style.left = '';
-            confirmNoBtn.style.top = '';
-            document.getElementById('confirmOverlay').style.display = 'flex';
-        }
-
-        function fleeNoButton(e) {
-            e.preventDefault();
-            const w = confirmNoBtn.offsetWidth;
-            const h = confirmNoBtn.offsetHeight;
-
-            if (confirmNoBtn.style.position !== 'fixed') {
-                const r = confirmNoBtn.getBoundingClientRect();
-                confirmNoBtn.style.position = 'fixed';
-                confirmNoBtn.style.left = r.left + 'px';
-                confirmNoBtn.style.top = r.top + 'px';
-                confirmNoBtn.style.margin = '0';
-                // força reflow antes de animar para a nova posição
-                void confirmNoBtn.offsetWidth;
-            }
-
-            const maxX = Math.max(0, window.innerWidth - w - 12);
-            const maxY = Math.max(0, window.innerHeight - h - 12);
-            const nx = Math.random() * maxX + 6;
-            const ny = Math.random() * maxY + 6;
-            confirmNoBtn.style.left = nx + 'px';
-            confirmNoBtn.style.top = ny + 'px';
-        }
-
-        confirmNoBtn.addEventListener('pointerdown', fleeNoButton);
-        confirmNoBtn.addEventListener('pointerenter', fleeNoButton);
-        confirmNoBtn.addEventListener('touchstart', fleeNoButton, { passive: false });
-
-        document.getElementById('confirmYesBtn').addEventListener('click', () => {
-            document.getElementById('confirmOverlay').style.display = 'none';
-            startFullscreenAnimation();
-        });
-
-        // ---------- Animação final: túnel -> galáxia -> coração ----------
-        const LOVE_WORD_COUNT = 140;
-        const TUNNEL_RINGS = 12;
-        let ringAngularSpeeds = [];
-        let loveWords = [];
-        let animPhase = null; // 'tunnel' | 'galaxy' | 'heart' | 'heart-done'
-        let animRAF = null;
-        let phaseStartTime = 0;
-        let lastFrameTime = 0;
-
-        function startFullscreenAnimation() {
-            const container = document.getElementById('fullscreenAnim');
-            const world = document.getElementById('loveWorld');
-            container.style.display = 'block';
-            world.innerHTML = '';
-            world.style.transform = 'rotateX(0deg) rotateY(0deg)';
-            resetCamera();
-            loveWords = [];
-
-            for (let i = 0; i < LOVE_WORD_COUNT; i++) {
-                const el = document.createElement('div');
-                el.className = 'love-word';
-                el.textContent = 'I LOVE YOU';
-                el.style.fontSize = (9 + Math.random() * 6).toFixed(1) + 'px';
-                world.appendChild(el);
-                loveWords.push({
-                    el,
-                    angle: Math.random() * Math.PI * 2,
-                    baseAngle: Math.random() * Math.PI * 2,
-                    ring: i % TUNNEL_RINGS,
-                    progress: Math.random(),
-                    speed: 0.18 + Math.random() * 0.18,
-                    lastX: 0, lastY: 0, lastZ: 0, lastScale: 1, lastRot: 0, lastOpacity: 1,
-                    gx: 0, gy: 0, gz: 0, vx: 0, vy: 0, vz: 0, rot: 0, vrot: 0,
-                    startX: 0, startY: 0, startZ: 0, startRot: 0, startScale: 1, startOpacity: 1, targetOpacity: 1,
-                    hx: 0, hy: 0, hz: 0, delay: 0, duration: 0, tStart: 0
-                });
-            }
-
-            startTunnelPhase();
-        }
-
-        function startTunnelPhase() {
-            animPhase = 'tunnel';
-            phaseStartTime = performance.now();
-            lastFrameTime = phaseStartTime;
-
-            ringAngularSpeeds = [];
-            for (let r = 0; r < TUNNEL_RINGS; r++) {
-                const dir = (r % 2 === 0) ? 1 : -1;
-                ringAngularSpeeds.push(dir * (0.5 + (r / TUNNEL_RINGS) * 1.1));
-            }
-
-            cancelAnimationFrame(animRAF);
-            animRAF = requestAnimationFrame(tunnelStep);
-        }
-
-        function tunnelStep(now) {
-            const dt = Math.min(0.05, (now - lastFrameTime) / 1000);
-            lastFrameTime = now;
-            const elapsedSeconds = (now - phaseStartTime) / 1000;
-            const halfW = window.innerWidth / 2;
-            const halfH = window.innerHeight / 2;
-            const maxRadius = Math.hypot(halfW, halfH) * 1.15;
-
-            for (const w of loveWords) {
-                w.progress += w.speed * dt;
-                if (w.progress > 1) {
-                    w.progress -= 1;
-                    w.baseAngle = Math.random() * Math.PI * 2;
-                }
-                const angle = w.baseAngle + ringAngularSpeeds[w.ring] * elapsedSeconds;
-                const radius = w.progress * maxRadius;
-                const x = Math.cos(angle) * radius;
-                const y = Math.sin(angle) * radius;
-                const scale = 0.15 + w.progress * 1.6;
-                let opacity;
-                if (w.progress < 0.12) opacity = w.progress / 0.12;
-                else if (w.progress > 0.88) opacity = (1 - w.progress) / 0.12;
-                else opacity = 1;
-                const rotDeg = (angle * 180 / Math.PI) + 90;
-
-                w.el.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) scale(${scale}) rotate(${rotDeg}deg)`;
-                w.el.style.opacity = opacity.toFixed(2);
-
-                w.lastX = x;
-                w.lastY = y;
-                w.lastZ = 0;
-                w.lastScale = scale;
-                w.lastRot = rotDeg;
-                w.lastOpacity = opacity;
-            }
-
-            if (now - phaseStartTime < 3000) {
-                animRAF = requestAnimationFrame(tunnelStep);
-            } else {
-                startGalaxyPhase();
-            }
-        }
-
-        function startGalaxyPhase() {
-            animPhase = 'spreading';
-            const w2 = window.innerWidth;
-            const h2 = window.innerHeight;
-            const depthRange = Math.min(w2, h2) * 0.9;
-            const now = performance.now();
-
-            for (const w of loveWords) {
-                w.startX = w.lastX;
-                w.startY = w.lastY;
-                w.startZ = w.lastZ;
-                w.startScale = w.lastScale;
-                w.startRot = w.lastRot;
-                w.startOpacity = w.lastOpacity;
-
-                w.gx = (Math.random() - 0.5) * w2 * 1.1;
-                w.gy = (Math.random() - 0.5) * h2 * 1.1;
-                w.gz = (Math.random() - 0.5) * depthRange;
-                w.vx = (Math.random() - 0.5) * 18;
-                w.vy = (Math.random() - 0.5) * 18;
-                w.vz = (Math.random() - 0.5) * 16;
-                w.rot = Math.random() * 360;
-                w.vrot = (Math.random() - 0.5) * 20;
-                w.targetOpacity = 0.75 + Math.random() * 0.25;
-
-                w.delay = Math.random() * 350;
-                w.duration = 1000 + Math.random() * 700;
-                w.tStart = now + w.delay;
-            }
-
-            cancelAnimationFrame(animRAF);
-            animRAF = requestAnimationFrame(spreadStep);
-        }
-
-        function spreadStep(now) {
-            let allDone = true;
-            for (const w of loveWords) {
-                let t = (now - w.tStart) / w.duration;
-                if (t < 0) { t = 0; allDone = false; }
-                else if (t >= 1) { t = 1; }
-                else { allDone = false; }
-
-                const e = easeInOutCubic(t);
-                const x = w.startX + (w.gx - w.startX) * e;
-                const y = w.startY + (w.gy - w.startY) * e;
-                const z = w.startZ + (w.gz - w.startZ) * e;
-                const scale = w.startScale + (1 - w.startScale) * e;
-                const rot = w.startRot + (w.rot - w.startRot) * e;
-                const opacity = w.startOpacity + (w.targetOpacity - w.startOpacity) * e;
-
-                w.el.style.transform = `translate3d(${x}px, ${y}px, ${z}px) translate(-50%, -50%) scale(${scale}) rotate(${rot}deg)`;
-                w.el.style.opacity = opacity.toFixed(2);
-            }
-
-            if (!allDone) {
-                animRAF = requestAnimationFrame(spreadStep);
-            } else {
-                animPhase = 'galaxy';
-                lastFrameTime = performance.now();
-                animRAF = requestAnimationFrame(galaxyStep);
-                enableCameraControl();
-            }
-        }
-
-        function galaxyStep(now) {
-            const dt = Math.min(0.05, (now - lastFrameTime) / 1000);
-            lastFrameTime = now;
-            const w2 = window.innerWidth;
-            const h2 = window.innerHeight;
-            const halfW = w2 * 0.6;
-            const halfH = h2 * 0.6;
-            const halfD = Math.min(w2, h2) * 0.55;
-
-            for (const w of loveWords) {
-                w.gx += w.vx * dt;
-                w.gy += w.vy * dt;
-                w.gz += w.vz * dt;
-                w.rot += w.vrot * dt;
-                if (w.gx < -halfW) w.gx = halfW;
-                if (w.gx > halfW) w.gx = -halfW;
-                if (w.gy < -halfH) w.gy = halfH;
-                if (w.gy > halfH) w.gy = -halfH;
-                if (w.gz < -halfD) w.gz = halfD;
-                if (w.gz > halfD) w.gz = -halfD;
-
-                w.el.style.transform = `translate3d(${w.gx}px, ${w.gy}px, ${w.gz}px) translate(-50%, -50%) scale(1) rotate(${w.rot}deg)`;
-            }
-
-            if (animPhase === 'galaxy') {
-                animRAF = requestAnimationFrame(galaxyStep);
-            }
-        }
-
-        // Gera pontos ao longo do CONTORNO de um coração (curva paramétrica),
-        // em múltiplas passadas concêntricas para dar espessura de traço pintado à mão.
-        function heartOutlinePoints(n, size, cx, cy, colorTag) {
-            const pts = [];
-            const passes = 3;
-            const perPass = Math.ceil(n / passes);
-            let idx = 0;
-
-            for (let p = 0; p < passes && idx < n; p++) {
-                const scaleFactor = 1 - p * 0.055;
-                const phase = Math.random() * 0.4;
-                const k = (size * scaleFactor) / 17;
-
-                for (let i = 0; i < perPass && idx < n; i++) {
-                    const t = phase + (i / perPass) * Math.PI * 2;
-                    const x = 16 * Math.pow(Math.sin(t), 3);
-                    const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
-                    const jitter = (Math.random() - 0.5) * size * 0.025;
-                    const jitter2 = (Math.random() - 0.5) * size * 0.025;
-                    const jitterZ = (Math.random() - 0.5) * size * 0.06;
-                    const opacity = (colorTag === 'red')
-                        ? 0.15 + Math.random() * 0.4
-                        : 1;
-                    pts.push({
-                        x: cx + x * k + jitter,
-                        y: cy - y * k + jitter2,
-                        z: jitterZ,
-                        color: colorTag,
-                        opacity
-                    });
-                    idx++;
-                }
-            }
-            return pts;
-        }
-
-        function generateHeartPoints(n) {
-            const w2 = window.innerWidth;
-            const h2 = window.innerHeight;
-            const baseSize = Math.min(w2, h2) * 0.40;
-
-            // Contorno externo, vermelho, maior, envolvendo o coração original
-            const sizeOuter = baseSize * 1.3;
-            const cxOuter = -baseSize * 0.02;
-            const cyOuter = -baseSize * 0.08;
-
-            // Coração original, magenta/rosa (o do meio)
-            const sizeMid = baseSize;
-            const cxMid = -baseSize * 0.02;
-            const cyMid = -baseSize * 0.08;
-
-            // Coração pequeno, branco/prateado, sobreposto mais abaixo
-            const sizeInner = baseSize * 0.58;
-            const cxInner = baseSize * 0.05;
-            const cyInner = baseSize * 0.22;
-
-            const nOuter = Math.round(n * 0.4);
-            const nInner = Math.round(n * 0.22);
-            const nMid = n - nOuter - nInner;
-
-            const ptsOuter = heartOutlinePoints(nOuter, sizeOuter, cxOuter, cyOuter, 'red');
-            const ptsMid = heartOutlinePoints(nMid, sizeMid, cxMid, cyMid, 'pink');
-            const ptsInner = heartOutlinePoints(nInner, sizeInner, cxInner, cyInner, 'white');
-            return ptsOuter.concat(ptsMid, ptsInner);
-        }
-
-        function convergeToHeart() {
-            animPhase = 'heart';
-            cancelAnimationFrame(animRAF);
-            const targets = generateHeartPoints(loveWords.length);
-            const now = performance.now();
-
-            loveWords.forEach((w, i) => {
-                w.startX = w.gx;
-                w.startY = w.gy;
-                w.startZ = w.gz;
-                w.startRot = w.rot;
-                w.startOpacity = parseFloat(w.el.style.opacity) || 1;
-                w.hx = targets[i].x;
-                w.hy = targets[i].y;
-                w.hz = targets[i].z;
-                w.targetOpacity = targets[i].opacity !== undefined ? targets[i].opacity : 1;
-                w.delay = Math.random() * 500;
-                w.duration = 1400 + Math.random() * 900;
-                w.tStart = now + w.delay;
-
-                if (targets[i].color === 'white') {
-                    w.el.style.color = '#ffffff';
-                    w.el.style.textShadow = '0 0 6px #ffffff, 0 0 14px #e6ccff, 0 0 26px #cfd8ff';
-                } else if (targets[i].color === 'red') {
-                    w.el.style.color = '#ff4d4d';
-                    w.el.style.textShadow = '0 0 6px #ff3333, 0 0 14px #ff0000, 0 0 26px #cc0000';
-                } else {
-                    w.el.style.color = '#ffccff';
-                    w.el.style.textShadow = '0 0 6px #ffccff, 0 0 14px #ff3399, 0 0 26px #ff3399';
-                }
-            });
-
-            animRAF = requestAnimationFrame(heartStep);
-        }
-
-        function easeInOutCubic(t) {
-            return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-        }
-
-        function heartStep(now) {
-            let allDone = true;
-            for (const w of loveWords) {
-                let t = (now - w.tStart) / w.duration;
-                if (t < 0) { t = 0; allDone = false; }
-                else if (t >= 1) { t = 1; }
-                else { allDone = false; }
-
-                const e = easeInOutCubic(t);
-                const x = w.startX + (w.hx - w.startX) * e;
-                const y = w.startY + (w.hy - w.startY) * e;
-                const z = w.startZ + (w.hz - w.startZ) * e;
-                const rot = w.startRot + (0 - w.startRot) * e;
-                const scale = 1 - 0.15 * e;
-                const opacity = w.startOpacity + (w.targetOpacity - w.startOpacity) * e;
-
-                w.el.style.transform = `translate3d(${x}px, ${y}px, ${z}px) translate(-50%, -50%) scale(${scale}) rotate(${rot}deg)`;
-                w.el.style.opacity = opacity.toFixed(2);
-            }
-
-            if (!allDone) {
-                animRAF = requestAnimationFrame(heartStep);
-            } else {
-                animPhase = 'heart-done';
-            }
-        }
-
-        // ---------- Câmera livre (ativa somente a partir da fase de galáxia) ----------
-        let cameraYaw = 0;
-        let cameraPitch = 0;
-        let cameraVYaw = 0;
-        let cameraVPitch = 0;
-        let cameraDragging = false;
-        let cameraLastX = 0;
-        let cameraLastY = 0;
-        let cameraLastMoveTime = 0;
-        let cameraMovedDist = 0;
-        let cameraEnabled = false;
-        let cameraRAF = null;
-        const TAP_THRESHOLD = 9;
-
-        function resetCamera() {
-            cameraYaw = 0;
-            cameraPitch = 0;
-            cameraVYaw = 0;
-            cameraVPitch = 0;
-            cameraDragging = false;
-            cameraEnabled = false;
-            cancelAnimationFrame(cameraRAF);
-        }
-
-        function enableCameraControl() {
-            if (cameraEnabled) return;
-            cameraEnabled = true;
-            cameraLastMoveTime = performance.now();
-            cameraRAF = requestAnimationFrame(cameraLoop);
-        }
-
-        function onCamPointerDown(e) {
-            if (!cameraEnabled) return;
-            cameraDragging = true;
-            cameraMovedDist = 0;
-            cameraLastX = e.clientX;
-            cameraLastY = e.clientY;
-            cameraLastMoveTime = performance.now();
-        }
-
-        function onCamPointerMove(e) {
-            if (!cameraEnabled || !cameraDragging) return;
-            const now = performance.now();
-            const dt = Math.max(0.001, (now - cameraLastMoveTime) / 1000);
-            const dx = e.clientX - cameraLastX;
-            const dy = e.clientY - cameraLastY;
-            const sensitivity = 0.25;
-
-            cameraYaw += dx * sensitivity;
-            cameraPitch = Math.max(-75, Math.min(75, cameraPitch - dy * sensitivity));
-            cameraVYaw = (dx * sensitivity) / dt;
-            cameraVPitch = (-dy * sensitivity) / dt;
-
-            cameraMovedDist += Math.abs(dx) + Math.abs(dy);
-            cameraLastX = e.clientX;
-            cameraLastY = e.clientY;
-            cameraLastMoveTime = now;
-        }
-
-        function onCamPointerUp() {
-            if (!cameraEnabled) return;
-            if (cameraDragging && cameraMovedDist < TAP_THRESHOLD && animPhase === 'galaxy') {
-                convergeToHeart();
-            }
-            cameraDragging = false;
-        }
-
-        function cameraLoop(now) {
-            const dt = Math.min(0.05, (now - (cameraLoop.lastTime || now)) / 1000);
-            cameraLoop.lastTime = now;
-
-            if (!cameraDragging) {
-                cameraYaw += cameraVYaw * dt;
-                cameraPitch = Math.max(-75, Math.min(75, cameraPitch + cameraVPitch * dt));
-                cameraVYaw *= 0.94;
-                cameraVPitch *= 0.94;
-            }
-
-            const world = document.getElementById('loveWorld');
-            world.style.transform = `rotateX(${cameraPitch}deg) rotateY(${cameraYaw}deg)`;
-
-            cameraRAF = requestAnimationFrame(cameraLoop);
-        }
-
-        const fullscreenAnimEl = document.getElementById('fullscreenAnim');
-        fullscreenAnimEl.addEventListener('pointerdown', onCamPointerDown);
-        window.addEventListener('pointermove', onCamPointerMove);
-        window.addEventListener('pointerup', onCamPointerUp);
-        window.addEventListener('pointercancel', onCamPointerUp);
-    </script>
+      }else if(animationState === 'heart' || animationState === 'done'){
+        updateHeart(dt, tNow);
+      }
+
+      // update controls if enabled
+      if(controls.enabled){
+        controls.update();
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    // resize handling
+    window.addEventListener('resize', ()=>{
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+    });
+
+    // Safety: if user never clicks, still render a baseline frame
+    renderer.render(scene, camera);
+
+    // Accessibility: trap keyboard for simple testing
+    window.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter') btnYes.click();
+      if(e.key === ' ') btnNo.click();
+    });
+
+  </script>
 </body>
 </html>
