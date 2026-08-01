@@ -21,13 +21,13 @@
     .thumb{position:absolute;left:0;top:50%;transform:translate(-50%,-50%);width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid #ff3399;transition:border-color 0.1s ease}
     .percent{color:#ffccff;margin-top:8px;font-size:16px}
     
-    /* Elemento de instrução inferior */
+    /* UI overlay for instructions */
     .bottom-hint {position:fixed;bottom:30px;left:0;width:100%;text-align:center;color:#fff;font-family:'Press Start 2P',monospace;font-size:11px;z-index:30;pointer-events:none;letter-spacing:1px;line-height:1.6}
     .blink {animation:blink-animation 1.5s steps(2, start) infinite}
     @keyframes blink-animation { to { visibility: hidden; } }
   </style>
   <!-- Font for UI (keeps original aesthetic) -->
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link href="https://googleapis.com" rel="stylesheet">
 </head>
 <body>
   <!-- UI: initial question -->
@@ -65,17 +65,17 @@
     </div>
   </div>
 
-  <!-- Texto informativo inferior -->
+  <!-- Bottom interactive hint overlay -->
   <div class="bottom-hint hidden blink" id="bottomHint"></div>
 
   <!-- three.js canvas will be injected programmatically -->
 
   <script type="module">
     // Reescrita completa: three.js module-based implementation
-    import * as THREE from 'https://unpkg.com/three@0.154.0/build/three.module.js';
-    import { OrbitControls } from 'https://unpkg.com/three@0.154.0/examples/jsm/controls/OrbitControls.js';
-    import { FontLoader } from 'https://unpkg.com/three@0.154.0/examples/jsm/loaders/FontLoader.js';
-    import { TextGeometry } from 'https://unpkg.com/three@0.154.0/examples/jsm/geometries/TextGeometry.js';
+    import * as THREE from 'https://unpkg.com';
+    import { OrbitControls } from 'https://unpkg.com';
+    import { FontLoader } from 'https://unpkg.com';
+    import { TextGeometry } from 'https://unpkg.com';
 
     // --- Configuráveis ---
     const WORD = 'LOVE ME';
@@ -148,7 +148,7 @@
     let font = null;
     let baseGeometry = null;
     let wordMeshes = [];
-    let animationState = 'idle'; // 'idle' | 'tunnel' | 'assembleHeart' | 'final'
+    let animationState = 'idle'; // 'idle' | 'tunnel' | 'explode' | 'gathering' | 'heart' | 'done'
 
     // Camera travel
     let cameraZ = 0; 
@@ -161,7 +161,7 @@
     function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
     function easeInOutSine(t){ return -(Math.cos(Math.PI * t) - 1) / 2; }
 
-    // --- INTERAÇÕES DE ELEMENTOS DA UI ---
+    // --- UI Button Interactions ---
 
     btnYes.addEventListener('click', () => {
       uiStart.classList.add('hidden');
@@ -176,6 +176,7 @@
     btnNo.addEventListener('mouseover', moverBotaoNo);
     btnNo.addEventListener('click', moverBotaoNo);
 
+    // Slider interactive mechanics
     let isDragging = false;
     function updateSlider(e) {
       const rect = slider.getBoundingClientRect();
@@ -188,7 +189,7 @@
       thumb.style.left = lovePercentage + '%';
       pct.innerText = lovePercentage + '%';
 
-      // Muda dinamicamente do Rosa (HSL 330) para o Vermelho (HSL 0)
+      // Pink (HSL 330) to Red (HSL 0) transition logic
       const hue = 330 - (lovePercentage * 3.3);
       const currentColor = `hsl(${hue}, 100%, 60%)`;
       
@@ -230,5 +231,3 @@
       uiConfirm.classList.add('hidden');
       
       bottomHint.innerText = "TOQUE NA TELA PARA AVANÇAR";
-      bottomHint.classList.remove('hidden');
-      
