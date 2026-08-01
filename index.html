@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -28,6 +27,10 @@
   </style>
   <!-- Font for UI (keeps original aesthetic) -->
   <link href="https://googleapis.com" rel="stylesheet">
+  
+  <!-- Carregamento tradicional (Sem Módulos) para evitar bloqueios de CORS do navegador -->
+  <script src="https://cloudflare.com"></script>
+  <script src="https://jsdelivr.net"></script>
 </head>
 <body>
   <!-- UI: initial question -->
@@ -68,26 +71,7 @@
   <!-- Bottom interactive hint overlay -->
   <div class="bottom-hint hidden blink" id="bottomHint"></div>
 
-  <!-- three.js canvas will be injected programmatically -->
-
-  <script type="module">
-    // Reescrita completa: three.js module-based implementation
-    import * as THREE from 'https://unpkg.com';
-    import { OrbitControls } from 'https://unpkg.com';
-    import { FontLoader } from 'https://unpkg.com';
-    import { TextGeometry } from 'https://unpkg.com';
-
-    // --- Configuráveis ---
-    const WORD = 'LOVE ME';
-    const WORD_COUNT = 280; // centenas, equilibrando qualidade/performance
-    const TUNNEL_RADIUS = Math.min(window.innerWidth, window.innerHeight) * 0.35;
-    const TUNNEL_LENGTH = 4000; // comprimento cíclico em unidades
-    const WORD_HEIGHT = 8; // font size
-    const EXTRUDE_DEPTH = 2.8; // depth extrusion
-    const BEVEL_SIZE = 0.35;
-    const TUNNEL_COLUMN_COUNT = 22; // number of vertical columns around camera
-    const WORDS_PER_COLUMN = Math.ceil(WORD_COUNT / TUNNEL_COLUMN_COUNT);
-
+  <script>
     // --- UI refs ---
     const uiStart = document.getElementById('uiStart');
     const uiPercent = document.getElementById('uiPercent');
@@ -106,8 +90,8 @@
 
     let lovePercentage = 0;
 
-    // --- EXECUÇÃO IMEDIATA DOS CLIQUES (CORREÇÃO CRÍTICA) ---
-    btnYes.addEventListener('click', () => {
+    // --- CLIQUES EXECUTADOS IMEDIATAMENTE (SEM ESPERAR CARREGAR NADA) ---
+    btnYes.addEventListener('click', function() {
       uiStart.classList.add('hidden');
       uiPercent.classList.remove('hidden');
     });
@@ -120,22 +104,22 @@
     btnNo.addEventListener('mouseover', moverBotaoNo);
     btnNo.addEventListener('click', moverBotaoNo);
 
-    btnContinue.addEventListener('click', () => {
+    btnContinue.addEventListener('click', function() {
       uiPercent.classList.add('hidden');
       if (lovePercentage < 100) {
-        confirmText.innerText = `VOCÊ REALMENTE ME AMA APENAS ${lovePercentage}%?`;
+        confirmText.innerText = "VOCÊ REALMENTE ME AMA APENAS " + lovePercentage + "%?";
         uiConfirm.classList.remove('hidden');
       } else {
         startTunnelAnimation();
       }
     });
 
-    confirmYes.addEventListener('click', () => {
+    confirmYes.addEventListener('click', function() {
       uiConfirm.classList.add('hidden');
       startTunnelAnimation();
     });
 
-    confirmNo.addEventListener('click', () => {
+    confirmNo.addEventListener('click', function() {
       uiConfirm.classList.add('hidden');
       uiPercent.classList.remove('hidden');
     });
@@ -144,7 +128,7 @@
     let isDragging = false;
     function updateSlider(e) {
       const rect = slider.getBoundingClientRect();
-      const clientX = e.touches ? e.touches.clientX : e.clientX;
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
       let offsetX = clientX - rect.left;
       offsetX = Math.max(0, Math.min(offsetX, rect.width));
       lovePercentage = Math.round((offsetX / rect.width) * 100);
@@ -153,21 +137,20 @@
       thumb.style.left = lovePercentage + '%';
       pct.innerText = lovePercentage + '%';
 
-      // Pink (HSL 330) to Red (HSL 0) transition logic
       const hue = 330 - (lovePercentage * 3.3);
-      const currentColor = `hsl(${hue}, 100%, 60%)`;
+      const currentColor = "hsl(" + hue + ", 100%, 60%)";
       
       fill.style.background = currentColor;
       thumb.style.borderColor = currentColor;
-      pct.style.color = `hsl(${hue}, 100%, 85%)`;
+      pct.style.color = "hsl(" + hue + ", 100%, 85%)";
     }
 
-    slider.addEventListener('mousedown', (e) => { isDragging = true; updateSlider(e); });
-    window.addEventListener('mousemove', (e) => { if (isDragging) updateSlider(e); });
-    window.addEventListener('mouseup', () => isDragging = false);
-    slider.addEventListener('touchstart', (e) => { isDragging = true; updateSlider(e); });
-    window.addEventListener('touchmove', (e) => { if (isDragging) updateSlider(e); });
-    window.addEventListener('touchend', () => isDragging = false);
+    slider.addEventListener('mousedown', function(e) { isDragging = true; updateSlider(e); });
+    window.addEventListener('mousemove', function(e) { if (isDragging) updateSlider(e); });
+    window.addEventListener('mouseup', function() { isDragging = false; });
+    slider.addEventListener('touchstart', function(e) { isDragging = true; updateSlider(e); });
+    window.addEventListener('touchmove', function(e) { if (isDragging) updateSlider(e); });
+    window.addEventListener('touchend', function() { isDragging = false; });
 
     function startTunnelAnimation() {
       uiStart.classList.add('hidden');
@@ -183,8 +166,7 @@
       clock.getDelta();
     }
 
-    // Global pointer listener to step out of the loop tunnel and build the heart
-    window.addEventListener('pointerdown', (e) => {
+    window.addEventListener('pointerdown', function(e) {
       if (e.target.tagName === 'BUTTON' || isDragging || e.target.closest('.panel')) return;
 
       if (animationState === 'tunnel') {
@@ -192,27 +174,33 @@
         stateTime = 0;
         bottomHint.classList.add('hidden');
         
-        wordMeshes.forEach((mesh, idx) => {
+        wordMeshes.forEach(function(mesh, idx) {
           originalPositions[idx].pos.copy(mesh.position);
           originalPositions[idx].rot.copy(mesh.rotation);
         });
       }
     });
 
+    // --- configuráveis ---
+    const WORD_COUNT = 280;
+    const TUNNEL_RADIUS = Math.min(window.innerWidth, window.innerHeight) * 0.35;
+    const TUNNEL_LENGTH = 4000;
+    const TUNNEL_COLUMN_COUNT = 22;
+    const WORDS_PER_COLUMN = Math.ceil(WORD_COUNT / TUNNEL_COLUMN_COUNT);
+
     // --- three.js basic setup ---
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x000000);
 
     const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 10000);
-    camera.position.set(0, 0, 0); // camera will move forward along -z axis
+    camera.position.set(0, 0, 0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
     document.body.appendChild(renderer.domElement);
 
-    // Lighting - designed to emphasize extrusion depth
+    // Lighting
     const ambient = new THREE.AmbientLight(0xffffff, 0.25);
     scene.add(ambient);
     const dir = new THREE.DirectionalLight(0xffe6f5, 0.9);
@@ -222,11 +210,26 @@
     rim.position.set(-60, -40, -60);
     scene.add(rim);
 
-    // Controls are disabled until heart formed
-    const controls = new OrbitControls(camera, renderer.domElement);
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enabled = false;
     controls.enableDamping = true;
     controls.dampingFactor = 0.06;
-    controls.autoRotate = false;
 
-    // Groups
+    const tunnelGroup = new THREE.Group();
+    scene.add(tunnelGroup);
+
+    let wordMeshes = [];
+    let animationState = 'idle';
+    let tunnelSpeed = 420;
+    let stateTime = 0;
+    let originalPositions = [];
+    let heartPositions = [];
+
+    function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+
+    // Criação dos blocos 3D simplificados para funcionar offline sem carregar fontes externas
+    function buildTunnelWords(){
+      const materialFront = new THREE.MeshStandardMaterial({ color: 0xff3399, roughness: 0.3, metalness: 0.1 });
+      const materialSide = new THREE.MeshStandardMaterial({ color: 0x990055, roughness: 0.5 });
+      const materials = [materialFront, materialSide, materialSide, materialSide, materialSide, materialSide];
+
