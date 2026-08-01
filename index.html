@@ -27,10 +27,6 @@
   </style>
   <!-- Font for UI (keeps original aesthetic) -->
   <link href="https://googleapis.com" rel="stylesheet">
-  
-  <!-- Carregamento tradicional (Sem Módulos) para evitar bloqueios de CORS do navegador -->
-  <script src="https://cloudflare.com"></script>
-  <script src="https://jsdelivr.net"></script>
 </head>
 <body>
   <!-- UI: initial question -->
@@ -71,7 +67,11 @@
   <!-- Bottom interactive hint overlay -->
   <div class="bottom-hint hidden blink" id="bottomHint"></div>
 
-  <script>
+  <!-- Carregamento unificado via módulos oficiais para evitar bloqueios de CORS locais -->
+  <script type="module">
+    import * as THREE from 'https://unpkg.com';
+    import { OrbitControls } from 'https://unpkg.com';
+
     // --- UI refs ---
     const uiStart = document.getElementById('uiStart');
     const uiPercent = document.getElementById('uiPercent');
@@ -90,8 +90,15 @@
 
     let lovePercentage = 0;
 
-    // --- CLIQUES EXECUTADOS IMEDIATAMENTE (SEM ESPERAR CARREGAR NADA) ---
-    btnYes.addEventListener('click', function() {
+    // --- CONFIGURAÇÕES DO CENÁRIO ---
+    const WORD_COUNT = 280;
+    const TUNNEL_RADIUS = Math.min(window.innerWidth, window.innerHeight) * 0.35;
+    const TUNNEL_LENGTH = 4000;
+    const TUNNEL_COLUMN_COUNT = 22;
+    const WORDS_PER_COLUMN = Math.ceil(WORD_COUNT / TUNNEL_COLUMN_COUNT);
+
+    // --- INTERAÇÕES DOS BOTÕES E ELEMENTOS DA UI ---
+    btnYes.addEventListener('click', () => {
       uiStart.classList.add('hidden');
       uiPercent.classList.remove('hidden');
     });
@@ -104,31 +111,11 @@
     btnNo.addEventListener('mouseover', moverBotaoNo);
     btnNo.addEventListener('click', moverBotaoNo);
 
-    btnContinue.addEventListener('click', function() {
-      uiPercent.classList.add('hidden');
-      if (lovePercentage < 100) {
-        confirmText.innerText = "VOCÊ REALMENTE ME AMA APENAS " + lovePercentage + "%?";
-        uiConfirm.classList.remove('hidden');
-      } else {
-        startTunnelAnimation();
-      }
-    });
-
-    confirmYes.addEventListener('click', function() {
-      uiConfirm.classList.add('hidden');
-      startTunnelAnimation();
-    });
-
-    confirmNo.addEventListener('click', function() {
-      uiConfirm.classList.add('hidden');
-      uiPercent.classList.remove('hidden');
-    });
-
-    // Slider interactive mechanics
+    // Controle deslizante interativo (Slider) com degradê do rosa ao vermelho
     let isDragging = false;
     function updateSlider(e) {
       const rect = slider.getBoundingClientRect();
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientX = e.touches ? e.touches.clientX : e.clientX;
       let offsetX = clientX - rect.left;
       offsetX = Math.max(0, Math.min(offsetX, rect.width));
       lovePercentage = Math.round((offsetX / rect.width) * 100);
@@ -138,19 +125,39 @@
       pct.innerText = lovePercentage + '%';
 
       const hue = 330 - (lovePercentage * 3.3);
-      const currentColor = "hsl(" + hue + ", 100%, 60%)";
+      const currentColor = `hsl(${hue}, 100%, 60%)`;
       
       fill.style.background = currentColor;
       thumb.style.borderColor = currentColor;
-      pct.style.color = "hsl(" + hue + ", 100%, 85%)";
+      pct.style.color = `hsl(${hue}, 100%, 85%)`;
     }
 
-    slider.addEventListener('mousedown', function(e) { isDragging = true; updateSlider(e); });
-    window.addEventListener('mousemove', function(e) { if (isDragging) updateSlider(e); });
-    window.addEventListener('mouseup', function() { isDragging = false; });
-    slider.addEventListener('touchstart', function(e) { isDragging = true; updateSlider(e); });
-    window.addEventListener('touchmove', function(e) { if (isDragging) updateSlider(e); });
-    window.addEventListener('touchend', function() { isDragging = false; });
+    slider.addEventListener('mousedown', (e) => { isDragging = true; updateSlider(e); });
+    window.addEventListener('mousemove', (e) => { if (isDragging) updateSlider(e); });
+    window.addEventListener('mouseup', () => isDragging = false);
+    slider.addEventListener('touchstart', (e) => { isDragging = true; updateSlider(e); });
+    window.addEventListener('touchmove', (e) => { if (isDragging) updateSlider(e); });
+    window.addEventListener('touchend', () => isDragging = false);
+
+    btnContinue.addEventListener('click', () => {
+      uiPercent.classList.add('hidden');
+      if (lovePercentage < 100) {
+        confirmText.innerText = `VOCÊ REALMENTE ME AMA APENAS ${lovePercentage}%?`;
+        uiConfirm.classList.remove('hidden');
+      } else {
+        startTunnelAnimation();
+      }
+    });
+
+    confirmYes.addEventListener('click', () => {
+      uiConfirm.classList.add('hidden');
+      startTunnelAnimation();
+    });
+
+    confirmNo.addEventListener('click', () => {
+      uiConfirm.classList.add('hidden');
+      uiPercent.classList.remove('hidden');
+    });
 
     function startTunnelAnimation() {
       uiStart.classList.add('hidden');
@@ -166,7 +173,8 @@
       clock.getDelta();
     }
 
-    window.addEventListener('pointerdown', function(e) {
+    // Clique na tela para sair do túnel e ir para o formato de coração
+    window.addEventListener('pointerdown', (e) => {
       if (e.target.tagName === 'BUTTON' || isDragging || e.target.closest('.panel')) return;
 
       if (animationState === 'tunnel') {
@@ -174,21 +182,14 @@
         stateTime = 0;
         bottomHint.classList.add('hidden');
         
-        wordMeshes.forEach(function(mesh, idx) {
+        wordMeshes.forEach((mesh, idx) => {
           originalPositions[idx].pos.copy(mesh.position);
           originalPositions[idx].rot.copy(mesh.rotation);
         });
       }
     });
 
-    // --- configuráveis ---
-    const WORD_COUNT = 280;
-    const TUNNEL_RADIUS = Math.min(window.innerWidth, window.innerHeight) * 0.35;
-    const TUNNEL_LENGTH = 4000;
-    const TUNNEL_COLUMN_COUNT = 22;
-    const WORDS_PER_COLUMN = Math.ceil(WORD_COUNT / TUNNEL_COLUMN_COUNT);
-
-    // --- three.js basic setup ---
+    // --- CONFIGURAÇÃO DO MOTOR GRÁFICO (THREE.JS) ---
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x000000);
 
@@ -198,9 +199,10 @@
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
     document.body.appendChild(renderer.domElement);
 
-    // Lighting
+    // Iluminação
     const ambient = new THREE.AmbientLight(0xffffff, 0.25);
     scene.add(ambient);
     const dir = new THREE.DirectionalLight(0xffe6f5, 0.9);
@@ -210,7 +212,7 @@
     rim.position.set(-60, -40, -60);
     scene.add(rim);
 
-    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    const controls = new OrbitControls(camera, renderer.domElement);
     controls.enabled = false;
     controls.enableDamping = true;
     controls.dampingFactor = 0.06;
@@ -227,9 +229,7 @@
 
     function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
 
-    // Criação dos blocos 3D simplificados para funcionar offline sem carregar fontes externas
+    // Geração de cubos 3D estilizados que eliminam erros de CORS por fontes locais
     function buildTunnelWords(){
       const materialFront = new THREE.MeshStandardMaterial({ color: 0xff3399, roughness: 0.3, metalness: 0.1 });
       const materialSide = new THREE.MeshStandardMaterial({ color: 0x990055, roughness: 0.5 });
-      const materials = [materialFront, materialSide, materialSide, materialSide, materialSide, materialSide];
-
