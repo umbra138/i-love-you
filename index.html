@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link
-  href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;1,400&family=Marcellus&display=swap"
+  href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;1,400&family=Marcellus&family=Dancing+Script:wght@600;700&display=swap"
   rel="stylesheet"
 />
 <style>
@@ -81,6 +81,25 @@
   #tap-hint.is-active { opacity: 1; visibility: visible; animation: tapPulse 2.2s ease-in-out infinite; }
   @keyframes tapPulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
 
+  /* Palavrinhas flutuantes ao redor do coração de galáxia (só aparecem no formato "A") */
+  #heart-word-labels {
+    position: fixed; inset: 0; z-index: 4; pointer-events: none;
+    opacity: 0; visibility: hidden; transition: opacity 1.4s var(--ease), visibility 1.4s var(--ease);
+  }
+  #heart-word-labels.is-active { opacity: 1; visibility: visible; }
+  .heart-word-label {
+    position: absolute; font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 300;
+    color: rgba(255, 210, 225, 0.8); text-shadow: 0 0 12px rgba(255, 92, 138, 0.5);
+    font-size: clamp(0.75rem, 2.6vw, 1rem); white-space: nowrap;
+  }
+  #meu-universo-caption {
+    position: fixed; left: 50%; bottom: 6.5vh; transform: translateX(-50%);
+    font-family: 'Marcellus', serif; font-size: 0.72rem; letter-spacing: 0.35em; text-transform: uppercase;
+    color: rgba(255, 180, 200, 0.6); z-index: 4; pointer-events: none;
+    opacity: 0; visibility: hidden; transition: opacity 1.4s var(--ease), visibility 1.4s var(--ease);
+  }
+  #meu-universo-caption.is-active { opacity: 1; visibility: visible; }
+
   #debug-error {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 999; max-height: 40vh; overflow: auto;
     background: rgba(120, 0, 20, 0.92); color: #fff; font-family: monospace; font-size: 11px;
@@ -116,67 +135,60 @@
 
   .bday-scene { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
 
-  /* Bolo */
-  #cake-scene { flex-direction: column-reverse; align-items: center; gap: 0; padding-bottom: 8vh; }
-  .cake-layer {
-    border-radius: 14px; box-shadow: 0 8px 26px rgba(255, 45, 85, 0.35), inset 0 -6px 10px rgba(0,0,0,0.15);
-    will-change: transform;
+  /* Bolo — visual "fatia de chocolate com recheio rosa e cobertura escorrendo" */
+  #cake-scene { flex-direction: column-reverse; align-items: center; gap: 0; padding-bottom: 6vh; position: relative; }
+  #cake-stack { display: flex; flex-direction: column-reverse; align-items: center; position: relative; }
+  .cake-band {
+    width: 172px; height: 18px; background: linear-gradient(180deg, #7a4e2e, #4a2c18);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.35); will-change: transform; border-radius: 8px;
   }
-  .cake-layer { position: relative; }
-  #cake-layer-3 {
-    width: 210px; height: 58px; margin-bottom: -4px;
-    background:
-      radial-gradient(circle at 15% 14px, #fff 5px, transparent 6px),
-      radial-gradient(circle at 38% 20px, #ffe27a 4px, transparent 5px),
-      radial-gradient(circle at 60% 12px, #fff 5px, transparent 6px),
-      radial-gradient(circle at 82% 18px, #7ad3ff 4px, transparent 5px),
-      radial-gradient(circle at 26% 30px, #ff9fc0 4px, transparent 5px),
-      radial-gradient(circle at 70% 28px, #ffe27a 4px, transparent 5px),
-      repeating-radial-gradient(circle at 0 100%, #fff 0 3px, transparent 4px 26px),
-      linear-gradient(180deg, #ff8fae, #ff2d55);
+  .cake-fill {
+    width: 172px; height: 6px; background: linear-gradient(180deg, #ff5c8a, #ff1f6b);
+    box-shadow: 0 1px 0 rgba(0,0,0,0.15); will-change: transform;
   }
-  #cake-layer-2 {
-    width: 160px; height: 50px; margin-bottom: -4px;
-    background:
-      radial-gradient(circle at 20% 12px, #ff5c8a 4px, transparent 5px),
-      radial-gradient(circle at 50% 18px, #fff 4px, transparent 5px),
-      radial-gradient(circle at 78% 12px, #ff5c8a 4px, transparent 5px),
-      repeating-radial-gradient(circle at 0 100%, #ffe9ef 0 3px, transparent 4px 22px),
-      linear-gradient(180deg, #ffd7e2, #ff9fc0);
+  .cake-plate { width: 210px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.9); box-shadow: 0 2px 12px rgba(255,255,255,0.3); margin-top: 4px; }
+
+  /* Cada camada vai ficando menor conforme sobe, como um bolo de verdade */
+  #cake-band-3 { width: 172px; }
+  #cake-fill-2 { width: 140px; }
+  #cake-band-2 { width: 140px; }
+  #cake-fill-1 { width: 108px; }
+  #cake-band-1 { width: 108px; }
+
+  #mini-cake .cake-band:nth-of-type(2) { width: 172px; }
+  #mini-cake .cake-fill:nth-of-type(3) { width: 140px; }
+  #mini-cake .cake-band:nth-of-type(4) { width: 140px; }
+  #mini-cake .cake-fill:nth-of-type(5) { width: 108px; }
+  #mini-cake .cake-band:nth-of-type(6) { width: 108px; }
+  .cake-icing {
+    position: relative; width: 128px; height: 22px; margin-bottom: 0; z-index: 2; will-change: transform;
+    background: linear-gradient(180deg, #ffffff, #fdeef2);
+    border-radius: 50% 50% 16% 16% / 100% 100% 30% 30%;
   }
-  #cake-layer-1 {
-    width: 112px; height: 42px; margin-bottom: -2px;
-    background:
-      repeating-radial-gradient(circle at 0 100%, #ffffff 0 3px, transparent 4px 18px),
-      linear-gradient(180deg, #fff2f5, #ffc2d6);
+  .cake-drip {
+    position: absolute; top: 100%; width: 18px; border-radius: 0 0 50% 50%;
+    background: linear-gradient(180deg, #fdeef2, #ffffff); transform-origin: 50% 0%;
   }
-  #cake-layer-1::before {
-    content: ''; position: absolute; top: -10px; left: -6px; right: -6px; height: 22px;
-    background: linear-gradient(180deg, #ffffff, #ffe9f0);
-    border-radius: 50% 50% 40% 40% / 70% 70% 30% 30%;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  .cake-candle {
+    position: relative; width: 14px; height: 54px; border-radius: 7px; z-index: 3;
+    background: repeating-linear-gradient(120deg, #ff2d55 0 7px, #ffffff 7px 14px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.25);
   }
-  #cake-layer-1::after {
-    content: ''; position: absolute; top: -12px; left: 8%; right: 8%; height: 14px;
-    background: repeating-radial-gradient(circle at 12% 100%, #ffffff 0 5px, transparent 6px 20px);
-    filter: drop-shadow(0 3px 2px rgba(0,0,0,0.05));
+  .cake-candle::after {
+    content: ''; position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+    width: 16px; height: 24px; border-radius: 60% 60% 50% 50%;
+    background: radial-gradient(circle at 50% 35%, #fffde0, #ffe066 55%, #ffc93c 85%);
+    box-shadow: 0 0 22px rgba(255, 224, 100, 0.9);
   }
-  #cake-candle { width: 8px; height: 46px; border-radius: 4px; background: linear-gradient(180deg, #fceabb, #f2c14e); position: relative; }
-  #cake-cherry {
-    position: absolute; top: -14px; left: 26%; transform: translateX(-50%);
-    width: 16px; height: 16px; border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #ff6b6b, #b3001b 75%);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+
+  .confetti {
+    position: absolute; width: 8px; height: 8px; border-radius: 2px; opacity: 0; pointer-events: none;
   }
-  #cake-cherry::after {
-    content: ''; position: absolute; top: -9px; left: 60%; width: 2px; height: 10px;
-    background: #4d7a3f; border-radius: 2px; transform: rotate(18deg);
-  }
-  #cake-candle::after {
-    content: ''; position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
-    width: 14px; height: 20px; border-radius: 60% 60% 50% 50%;
-    background: radial-gradient(circle at 50% 30%, #fff6d0, #ffb14e 60%, #ff6a1f);
-    box-shadow: 0 0 16px rgba(255, 170, 60, 0.8);
+
+  #bday-caption {
+    font-family: 'Dancing Script', cursive; font-weight: 700; font-size: clamp(1.6rem, 6vw, 2.6rem);
+    color: #fff; margin-top: 1.4rem; text-align: center; opacity: 0;
+    text-shadow: 0 0 8px rgba(255,255,255,0.8), 0 0 22px rgba(255, 92, 138, 0.85), 0 0 40px rgba(255, 45, 85, 0.6);
   }
 
   #bday-hint {
@@ -252,6 +264,22 @@
 
   <div id="tap-hint">✦ toque 2x na tela ✦</div>
 
+  <div id="heart-word-labels">
+    <span class="heart-word-label" style="top:10%; left:8%;">Amor eterno</span>
+    <span class="heart-word-label" style="top:16%; left:62%;">Te amo</span>
+    <span class="heart-word-label" style="top:8%; left:38%;">Para sempre</span>
+    <span class="heart-word-label" style="top:24%; left:4%;">Meu paraíso</span>
+    <span class="heart-word-label" style="top:30%; left:78%;">Destino</span>
+    <span class="heart-word-label" style="top:40%; left:12%;">Paixão</span>
+    <span class="heart-word-label" style="top:46%; left:70%;">Constelação</span>
+    <span class="heart-word-label" style="top:58%; left:6%;">Sonhos</span>
+    <span class="heart-word-label" style="top:64%; left:76%;">Sempre juntos</span>
+    <span class="heart-word-label" style="top:72%; left:16%;">Ternura</span>
+    <span class="heart-word-label" style="top:20%; left:88%;">Alma</span>
+    <span class="heart-word-label" style="top:52%; left:90%;">Infinito</span>
+  </div>
+  <div id="meu-universo-caption">✦ meu universo ✦</div>
+
   <div id="loading-screen">
     <div class="loading-screen__mark">INFINITY LOVE</div>
     <div class="loading-screen__bar"><div class="loading-screen__bar-fill" id="loading-bar-fill"></div></div>
@@ -265,12 +293,35 @@
     <button id="birthday-close" type="button" aria-label="Fechar">✕</button>
 
     <div class="bday-scene" id="cake-scene">
-      <div class="cake-layer" id="cake-layer-3"></div>
-      <div class="cake-layer" id="cake-layer-2"></div>
-      <div class="cake-layer" id="cake-layer-1">
-        <div id="cake-cherry"></div>
+      <div class="confetti" id="confetti-1" style="left:18%; background:#ffe27a;"></div>
+      <div class="confetti" id="confetti-2" style="left:30%; background:#ff9fc0;"></div>
+      <div class="confetti" id="confetti-3" style="left:44%; background:#ffffff;"></div>
+      <div class="confetti" id="confetti-4" style="left:58%; background:#7ad3ff;"></div>
+      <div class="confetti" id="confetti-5" style="left:70%; background:#ff5c8a;"></div>
+      <div class="confetti" id="confetti-6" style="left:80%; background:#ffe27a;"></div>
+      <div class="confetti" id="confetti-7" style="left:24%; background:#ffffff;"></div>
+      <div class="confetti" id="confetti-8" style="left:66%; background:#ff9fc0;"></div>
+      <div class="confetti" id="confetti-9" style="left:12%; background:none; color:#ff5c8a; font-size:14px; width:auto; height:auto;">❤</div>
+      <div class="confetti" id="confetti-10" style="left:88%; background:none; color:#ffb1c6; font-size:12px; width:auto; height:auto;">❤</div>
+
+      <div id="cake-stack">
+        <div class="cake-plate"></div>
+        <div class="cake-band" id="cake-band-3"></div>
+        <div class="cake-fill" id="cake-fill-2"></div>
+        <div class="cake-band" id="cake-band-2"></div>
+        <div class="cake-fill" id="cake-fill-1"></div>
+        <div class="cake-band" id="cake-band-1"></div>
+        <div class="cake-icing" id="cake-icing">
+          <div class="cake-drip" style="left:6%; height:16px;"></div>
+          <div class="cake-drip" style="left:20%; height:26px;"></div>
+          <div class="cake-drip" style="left:36%; height:11px;"></div>
+          <div class="cake-drip" style="left:52%; height:22px;"></div>
+          <div class="cake-drip" style="left:68%; height:14px;"></div>
+          <div class="cake-drip" style="left:84%; height:28px;"></div>
+        </div>
+        <div class="cake-candle" id="cake-candle"></div>
       </div>
-      <div id="cake-candle"></div>
+      <div id="bday-caption">Happy Birthday my Love!</div>
       <div id="bday-hint">toque pra continuar</div>
     </div>
 
@@ -279,12 +330,19 @@
         <div class="rose-stem"></div>
       </div>
       <div id="mini-cake">
-        <div class="cake-layer" id="mini-layer-3" style="width:130px;height:38px;background:radial-gradient(circle at 20% 10px,#fff 3px,transparent 4px),radial-gradient(circle at 55% 16px,#ffe27a 3px,transparent 4px),radial-gradient(circle at 82% 12px,#7ad3ff 3px,transparent 4px),linear-gradient(180deg,#ff8fae,#ff2d55);"></div>
-        <div class="cake-layer" id="mini-layer-2" style="width:98px;height:32px;background:radial-gradient(circle at 30% 10px,#ff5c8a 3px,transparent 4px),radial-gradient(circle at 68% 14px,#fff 3px,transparent 4px),linear-gradient(180deg,#ffd7e2,#ff9fc0);"></div>
-        <div class="cake-layer" id="mini-layer-1" style="width:68px;height:26px;background:linear-gradient(180deg,#fff2f5,#ffc2d6);">
-          <div id="mini-cherry" style="position:absolute;top:-9px;left:24%;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff6b6b,#b3001b 75%);box-shadow:0 1px 2px rgba(0,0,0,0.25);"></div>
+        <div class="cake-plate"></div>
+        <div class="cake-band"></div>
+        <div class="cake-fill"></div>
+        <div class="cake-band"></div>
+        <div class="cake-fill"></div>
+        <div class="cake-band"></div>
+        <div class="cake-icing">
+          <div class="cake-drip" style="left:10%; height:12px;"></div>
+          <div class="cake-drip" style="left:32%; height:20px;"></div>
+          <div class="cake-drip" style="left:56%; height:10px;"></div>
+          <div class="cake-drip" style="left:78%; height:18px;"></div>
         </div>
-        <div id="mini-candle" style="width:6px;height:30px;border-radius:4px;background:linear-gradient(180deg,#fceabb,#f2c14e);position:relative;"></div>
+        <div class="cake-candle"></div>
       </div>
       <div id="bday-countdown">
         <span class="bday-number" id="bday-days">--</span>
@@ -633,6 +691,83 @@
     tunnelGeometry.attributes.position.needsUpdate = true;
   }
 
+  // Palavras girando em espiral na direção da câmera, por cima do túnel de partículas.
+  function createWordSpiralTexture(text) {
+    var c = document.createElement('canvas');
+    c.width = 512; c.height = 128;
+    var ctx = c.getContext('2d');
+    ctx.clearRect(0, 0, c.width, c.height);
+    ctx.font = 'italic 400 64px Georgia, "Times New Roman", serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(255, 45, 85, 0.9)';
+    ctx.shadowBlur = 26;
+    ctx.fillStyle = '#ffcfe0';
+    ctx.fillText(text, c.width / 2, c.height / 2);
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#fff';
+    ctx.fillText(text, c.width / 2, c.height / 2);
+    return new THREE.CanvasTexture(c);
+  }
+
+  var wordSpiralPhrases = ['Te amo', 'I love you', 'Amor eterno', 'Para sempre'];
+  var wordSpiralGroups = [];
+  var wordSpiralCountEach = Math.max(6, Math.floor(16 * particleMultiplier));
+
+  wordSpiralPhrases.forEach(function (phrase) {
+    var texture = createWordSpiralTexture(phrase);
+    var geometry = new THREE.PlaneGeometry(1.6, 0.4);
+    var material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending });
+    var mesh = new THREE.InstancedMesh(geometry, material, wordSpiralCountEach);
+    mesh.frustumCulled = false;
+
+    var radii = new Float32Array(wordSpiralCountEach);
+    var angles = new Float32Array(wordSpiralCountEach);
+    var spins = new Float32Array(wordSpiralCountEach);
+    var zs = new Float32Array(wordSpiralCountEach);
+    var dummy = new THREE.Object3D();
+
+    for (var i = 0; i < wordSpiralCountEach; i++) {
+      radii[i] = randRange(0.8, tunnelRadius * 1.3);
+      angles[i] = randRange(0, Math.PI * 2);
+      spins[i] = randRange(0.5, 1.1) * (Math.random() > 0.5 ? 1 : -1);
+      zs[i] = -randRange(0, tunnelDepth);
+      dummy.position.set(Math.cos(angles[i]) * radii[i], Math.sin(angles[i]) * radii[i], zs[i]);
+      dummy.updateMatrix();
+      mesh.setMatrixAt(i, dummy.matrix);
+    }
+
+    scene.add(mesh);
+    wordSpiralGroups.push({ mesh: mesh, material: material, radii: radii, angles: angles, spins: spins, zs: zs });
+  });
+
+  function updateWordSpiral(delta) {
+    var dummy = new THREE.Object3D();
+    var opacity = tunnelMaterial.uniforms.uOpacity.value;
+    var advance = tunnelSpeed * delta * 0.85;
+
+    wordSpiralGroups.forEach(function (group) {
+      group.material.opacity = opacity * 0.85;
+      if (tunnelSpeed <= 0) return;
+
+      for (var i = 0; i < wordSpiralCountEach; i++) {
+        group.zs[i] += advance;
+        var angularSpeed = group.spins[i] * (1.1 / (0.6 + group.radii[i]));
+        group.angles[i] += angularSpeed * delta;
+
+        if (group.zs[i] > 2) {
+          group.radii[i] = randRange(0.8, tunnelRadius * 1.3);
+          group.angles[i] = randRange(0, Math.PI * 2);
+          group.zs[i] = -tunnelDepth;
+        }
+
+        dummy.position.set(Math.cos(group.angles[i]) * group.radii[i], Math.sin(group.angles[i]) * group.radii[i], group.zs[i]);
+        dummy.updateMatrix();
+        group.mesh.setMatrixAt(i, dummy.matrix);
+      }
+      group.mesh.instanceMatrix.needsUpdate = true;
+    });
+  }
+
   // Pequeno Saturno lá no fundo do redemoinho de partículas (bem discreto).
   var saturn = new THREE.Group();
   var saturnBody = new THREE.Mesh(
@@ -752,6 +887,32 @@
     heartState.isShapeA = !heartState.isShapeA;
     var target = heartState.isShapeA ? shapeAPoints : shapeBPoints;
     startHeartMorph(target.positions, target.colors);
+    updateHeartWordLabelsVisibility();
+  }
+
+  var heartWordLabelsEl = document.getElementById('heart-word-labels');
+  var meuUniversoCaptionEl = document.getElementById('meu-universo-caption');
+  var heartWordLabelsFloating = false;
+
+  function updateHeartWordLabelsVisibility() {
+    var show = heartState.ready && heartState.isShapeA;
+    heartWordLabelsEl.classList.toggle('is-active', show);
+    meuUniversoCaptionEl.classList.toggle('is-active', show);
+    if (show && !heartWordLabelsFloating) startHeartWordLabelsFloat();
+  }
+
+  function startHeartWordLabelsFloat() {
+    heartWordLabelsFloating = true;
+    var labels = heartWordLabelsEl.querySelectorAll('.heart-word-label');
+    labels.forEach(function (label, i) {
+      gsap.to(label, {
+        y: '+=' + randRange(-14, 14), x: '+=' + randRange(-10, 10),
+        duration: 3 + Math.random() * 2.5, delay: i * 0.15, yoyo: true, repeat: -1, ease: 'sine.inOut',
+      });
+      gsap.to(label, {
+        opacity: randRange(0.55, 1), duration: 2.2 + Math.random() * 2, delay: i * 0.1, yoyo: true, repeat: -1, ease: 'sine.inOut',
+      });
+    });
   }
 
   function startHeartbeat() {
@@ -898,6 +1059,7 @@
       controls.enabled = true;
       startHeartbeat();
       tapHintEl.classList.add('is-active');
+      updateHeartWordLabelsVisibility();
     }, 2400);
   }
 
@@ -946,10 +1108,9 @@
   }
 
   function resetCakeScene() {
-    gsap.set('#cake-layer-3', { y: -420, opacity: 1 });
-    gsap.set('#cake-layer-2', { y: -420, opacity: 1 });
-    gsap.set('#cake-layer-1', { y: -420, opacity: 1 });
-    gsap.set('#cake-candle', { y: -420, opacity: 1 });
+    gsap.set(['#cake-band-3', '#cake-fill-2', '#cake-band-2', '#cake-fill-1', '#cake-band-1', '#cake-candle'], { y: -420, opacity: 1, scaleX: 1, scaleY: 1 });
+    gsap.set('#cake-icing', { scaleY: 0, opacity: 0, transformOrigin: '50% 0%' });
+    gsap.set('#bday-caption', { opacity: 0, y: 10 });
     bdayHint.classList.remove('is-active');
     cakeAdvanceReady = false;
     cakeScene.style.display = 'flex';
@@ -957,17 +1118,42 @@
     roseScene.style.display = 'none';
   }
 
+  // Queda suave e "mole": a peça cai e, ao pousar, esmaga levemente e volta ao normal (efeito gelatinoso).
+  function dropSoftly(timeline, selector, position) {
+    timeline.to(selector, { y: 0, duration: 0.75, ease: 'power2.in' }, position);
+    timeline.to(selector, { scaleY: 0.8, scaleX: 1.16, duration: 0.12, ease: 'power1.out' }, '-=0.02');
+    timeline.to(selector, { scaleY: 1, scaleX: 1, duration: 0.45, ease: 'elastic.out(1, 0.55)' });
+  }
+
+  function startConfetti() {
+    for (var i = 1; i <= 10; i++) {
+      var el = document.getElementById('confetti-' + i);
+      if (!el) continue;
+      gsap.set(el, { top: '-8%', opacity: 0, rotation: Math.random() * 360 });
+      gsap.to(el, {
+        top: '108%', opacity: 1, rotation: '+=' + (180 + Math.random() * 360),
+        duration: 3.2 + Math.random() * 2, delay: Math.random() * 2, repeat: -1, ease: 'none',
+      });
+    }
+  }
+
   function playCakeFall() {
+    startConfetti();
     var tl = gsap.timeline({
       onComplete: function () {
         cakeAdvanceReady = true;
         bdayHint.classList.add('is-active');
+        gsap.to('#bday-caption', { opacity: 1, y: 0, duration: 0.9, ease: 'power2.out' });
       },
     });
-    tl.to('#cake-layer-3', { y: 0, duration: 0.9, ease: 'bounce.out' });
-    tl.to('#cake-layer-2', { y: 0, duration: 0.9, ease: 'bounce.out' }, '+=0.15');
-    tl.to('#cake-layer-1', { y: 0, duration: 0.9, ease: 'bounce.out' }, '+=0.15');
-    tl.to('#cake-candle', { y: 0, duration: 0.7, ease: 'bounce.out' }, '+=0.15');
+    dropSoftly(tl, '#cake-band-3', 0);
+    dropSoftly(tl, '#cake-fill-2', '+=0.1');
+    dropSoftly(tl, '#cake-band-2', '+=0.1');
+    dropSoftly(tl, '#cake-fill-1', '+=0.1');
+    dropSoftly(tl, '#cake-band-1', '+=0.1');
+    // cobertura: escorre por cima em vez de cair rígida
+    tl.to('#cake-icing', { scaleY: 1, opacity: 1, duration: 1.1, ease: 'power3.out' }, '+=0.1');
+    dropSoftly(tl, '#cake-candle', '+=0.05');
   }
 
   function computeDaysUntilBirthday() {
@@ -1047,6 +1233,7 @@
     var elapsed = (now - clockStart) / 1000;
 
     updateTunnel(delta);
+    updateWordSpiral(delta);
     updateSaturn(delta);
     updateHeartJitter(elapsed);
     if (controls.enabled) controls.update();
