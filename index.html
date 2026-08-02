@@ -122,10 +122,56 @@
     border-radius: 14px; box-shadow: 0 8px 26px rgba(255, 45, 85, 0.35), inset 0 -6px 10px rgba(0,0,0,0.15);
     will-change: transform;
   }
-  #cake-layer-3 { width: 210px; height: 58px; background: linear-gradient(180deg, #ff8fae, #ff2d55); margin-bottom: -4px; }
-  #cake-layer-2 { width: 160px; height: 50px; background: linear-gradient(180deg, #ffd7e2, #ff9fc0); margin-bottom: -4px; }
-  #cake-layer-1 { width: 112px; height: 42px; background: linear-gradient(180deg, #fff2f5, #ffc2d6); margin-bottom: -2px; }
+  .cake-layer { position: relative; }
+  #cake-layer-3 {
+    width: 210px; height: 58px; margin-bottom: -4px;
+    background:
+      radial-gradient(circle at 15% 14px, #fff 5px, transparent 6px),
+      radial-gradient(circle at 38% 20px, #ffe27a 4px, transparent 5px),
+      radial-gradient(circle at 60% 12px, #fff 5px, transparent 6px),
+      radial-gradient(circle at 82% 18px, #7ad3ff 4px, transparent 5px),
+      radial-gradient(circle at 26% 30px, #ff9fc0 4px, transparent 5px),
+      radial-gradient(circle at 70% 28px, #ffe27a 4px, transparent 5px),
+      repeating-radial-gradient(circle at 0 100%, #fff 0 3px, transparent 4px 26px),
+      linear-gradient(180deg, #ff8fae, #ff2d55);
+  }
+  #cake-layer-2 {
+    width: 160px; height: 50px; margin-bottom: -4px;
+    background:
+      radial-gradient(circle at 20% 12px, #ff5c8a 4px, transparent 5px),
+      radial-gradient(circle at 50% 18px, #fff 4px, transparent 5px),
+      radial-gradient(circle at 78% 12px, #ff5c8a 4px, transparent 5px),
+      repeating-radial-gradient(circle at 0 100%, #ffe9ef 0 3px, transparent 4px 22px),
+      linear-gradient(180deg, #ffd7e2, #ff9fc0);
+  }
+  #cake-layer-1 {
+    width: 112px; height: 42px; margin-bottom: -2px;
+    background:
+      repeating-radial-gradient(circle at 0 100%, #ffffff 0 3px, transparent 4px 18px),
+      linear-gradient(180deg, #fff2f5, #ffc2d6);
+  }
+  #cake-layer-1::before {
+    content: ''; position: absolute; top: -10px; left: -6px; right: -6px; height: 22px;
+    background: linear-gradient(180deg, #ffffff, #ffe9f0);
+    border-radius: 50% 50% 40% 40% / 70% 70% 30% 30%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  }
+  #cake-layer-1::after {
+    content: ''; position: absolute; top: -12px; left: 8%; right: 8%; height: 14px;
+    background: repeating-radial-gradient(circle at 12% 100%, #ffffff 0 5px, transparent 6px 20px);
+    filter: drop-shadow(0 3px 2px rgba(0,0,0,0.05));
+  }
   #cake-candle { width: 8px; height: 46px; border-radius: 4px; background: linear-gradient(180deg, #fceabb, #f2c14e); position: relative; }
+  #cake-cherry {
+    position: absolute; top: -14px; left: 26%; transform: translateX(-50%);
+    width: 16px; height: 16px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ff6b6b, #b3001b 75%);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+  }
+  #cake-cherry::after {
+    content: ''; position: absolute; top: -9px; left: 60%; width: 2px; height: 10px;
+    background: #4d7a3f; border-radius: 2px; transform: rotate(18deg);
+  }
   #cake-candle::after {
     content: ''; position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
     width: 14px; height: 20px; border-radius: 60% 60% 50% 50%;
@@ -221,7 +267,9 @@
     <div class="bday-scene" id="cake-scene">
       <div class="cake-layer" id="cake-layer-3"></div>
       <div class="cake-layer" id="cake-layer-2"></div>
-      <div class="cake-layer" id="cake-layer-1"></div>
+      <div class="cake-layer" id="cake-layer-1">
+        <div id="cake-cherry"></div>
+      </div>
       <div id="cake-candle"></div>
       <div id="bday-hint">toque pra continuar</div>
     </div>
@@ -231,9 +279,11 @@
         <div class="rose-stem"></div>
       </div>
       <div id="mini-cake">
-        <div class="cake-layer" id="mini-layer-3" style="width:130px;height:38px;background:linear-gradient(180deg,#ff8fae,#ff2d55);"></div>
-        <div class="cake-layer" id="mini-layer-2" style="width:98px;height:32px;background:linear-gradient(180deg,#ffd7e2,#ff9fc0);"></div>
-        <div class="cake-layer" id="mini-layer-1" style="width:68px;height:26px;background:linear-gradient(180deg,#fff2f5,#ffc2d6);"></div>
+        <div class="cake-layer" id="mini-layer-3" style="width:130px;height:38px;background:radial-gradient(circle at 20% 10px,#fff 3px,transparent 4px),radial-gradient(circle at 55% 16px,#ffe27a 3px,transparent 4px),radial-gradient(circle at 82% 12px,#7ad3ff 3px,transparent 4px),linear-gradient(180deg,#ff8fae,#ff2d55);"></div>
+        <div class="cake-layer" id="mini-layer-2" style="width:98px;height:32px;background:radial-gradient(circle at 30% 10px,#ff5c8a 3px,transparent 4px),radial-gradient(circle at 68% 14px,#fff 3px,transparent 4px),linear-gradient(180deg,#ffd7e2,#ff9fc0);"></div>
+        <div class="cake-layer" id="mini-layer-1" style="width:68px;height:26px;background:linear-gradient(180deg,#fff2f5,#ffc2d6);">
+          <div id="mini-cherry" style="position:absolute;top:-9px;left:24%;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff6b6b,#b3001b 75%);box-shadow:0 1px 2px rgba(0,0,0,0.25);"></div>
+        </div>
         <div id="mini-candle" style="width:6px;height:30px;border-radius:4px;background:linear-gradient(180deg,#fceabb,#f2c14e);position:relative;"></div>
       </div>
       <div id="bday-countdown">
