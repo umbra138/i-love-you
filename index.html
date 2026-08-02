@@ -10,15 +10,6 @@
   href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;1,400&family=Marcellus&display=swap"
   rel="stylesheet"
 />
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://esm.sh/three@0.165.0",
-    "three/examples/jsm/": "https://esm.sh/three@0.165.0/examples/jsm/",
-    "gsap": "https://esm.sh/gsap@3.12.5"
-  }
-}
-</script>
 <style>
   :root {
     --color-bg: #000000;
@@ -43,7 +34,7 @@
   }
   #loading-screen.is-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
   .loading-screen__mark {
-    font-family: 'Marcellus', serif; letter-spacing: 0.5em; font-size: 0.9rem;
+    font-family: 'Marcellus', serif; letter-spacing: 0.5em; font-size: 0.85rem;
     color: var(--color-pink-soft); text-indent: 0.5em;
   }
   .loading-screen__bar { width: 180px; height: 1px; background: rgba(255,255,255,0.15); overflow: hidden; }
@@ -52,44 +43,49 @@
   #ui-root { position: fixed; inset: 0; z-index: 10; pointer-events: none; }
   .stage {
     position: absolute; inset: 0; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 3rem; opacity: 0; visibility: hidden;
-    pointer-events: none; transition: opacity 1.1s var(--ease); padding: 0 1.5rem; text-align: center;
+    align-items: center; justify-content: center; gap: 2.4rem; opacity: 0; visibility: hidden;
+    pointer-events: none; transition: opacity 1.1s var(--ease); padding: 0 1.2rem; text-align: center;
   }
   .stage.is-active { opacity: 1; visibility: visible; pointer-events: auto; }
   .stage__title {
     font-family: 'Cormorant Garamond', serif; font-weight: 300; font-style: italic;
-    font-size: clamp(1.8rem, 5vw, 3.2rem); letter-spacing: 0.03em;
+    font-size: clamp(1.5rem, 6vw, 3.2rem); letter-spacing: 0.02em;
     text-shadow: 0 0 30px rgba(255, 92, 138, 0.45);
   }
-  .stage__actions { position: relative; width: min(90vw, 420px); height: 120px; }
+  .stage__actions { position: relative; width: min(92vw, 420px); height: 110px; }
   .btn {
-    position: absolute; top: 50%; transform: translate(-50%, -50%);
-    border: 1px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.03);
-    color: var(--color-white); font-family: 'Marcellus', serif; font-size: 1rem;
-    letter-spacing: 0.08em; padding: 0.9rem 2.2rem; border-radius: 999px; cursor: pointer;
-    backdrop-filter: blur(6px);
-    transition: transform 0.35s var(--ease), background 0.35s var(--ease), border-color 0.35s var(--ease);
-    will-change: transform;
+    position: absolute; top: 50%; left: 0;
+    width: 130px; height: 48px; margin-left: -65px; margin-top: -24px;
+    border: 1px solid rgba(255, 255, 255, 0.35); background: rgba(255, 255, 255, 0.04);
+    color: var(--color-white); font-family: 'Marcellus', serif; font-size: 0.95rem;
+    letter-spacing: 0.06em; border-radius: 999px; cursor: pointer;
+    backdrop-filter: blur(6px); touch-action: manipulation;
+    display: flex; align-items: center; justify-content: center; gap: 0.35rem;
   }
-  .btn--yes { left: 30%; border-color: rgba(255,92,138,0.6); box-shadow: 0 0 24px rgba(255,92,138,0.25); }
-  .btn--yes:hover { background: rgba(255,92,138,0.12); }
-  .btn--no { left: 70%; position: absolute; }
+  .btn--yes { left: 28%; border-color: rgba(255, 92, 138, 0.6); box-shadow: 0 0 24px rgba(255, 92, 138, 0.25); z-index: 2; }
+  .btn--no { left: 72%; z-index: 2; }
 
-  .slider { width: min(85vw, 380px); display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
-  .slider__track {
-    position: relative; width: 100%; height: 4px; border-radius: 999px;
-    background: rgba(255,255,255,0.15); touch-action: none; cursor: pointer;
+  .slider { width: min(88vw, 380px); display: flex; flex-direction: column; align-items: center; gap: 1.3rem; }
+  .slider__track { position: relative; width: 100%; height: 4px; border-radius: 999px; background: rgba(255,255,255,0.15); touch-action: none; cursor: pointer; }
+  .slider__fill { position: absolute; left: 0; top: 0; height: 100%; width: 0%; border-radius: 999px; background: linear-gradient(90deg, var(--color-pink), var(--color-red)); box-shadow: 0 0 16px rgba(255,45,85,0.6); }
+  .slider__handle { position: absolute; top: 50%; left: 0%; width: 22px; height: 22px; border-radius: 50%; background: var(--color-white); box-shadow: 0 0 18px rgba(255,92,138,0.8); transform: translate(-50%, -50%); }
+  .slider__value { font-family: 'Marcellus', serif; font-size: 1.3rem; letter-spacing: 0.05em; color: var(--color-pink-soft); }
+
+  #tap-hint {
+    position: fixed; left: 50%; bottom: 2.2vh; transform: translateX(-50%);
+    font-family: 'Marcellus', serif; font-size: 0.85rem; letter-spacing: 0.15em;
+    color: rgba(255, 220, 230, 0.75); text-transform: uppercase; z-index: 10;
+    opacity: 0; visibility: hidden; transition: opacity 1s var(--ease), visibility 1s var(--ease);
+    pointer-events: none; text-align: center; padding: 0 1rem;
   }
-  .slider__fill {
-    position: absolute; left: 0; top: 0; height: 100%; width: 0%; border-radius: 999px;
-    background: linear-gradient(90deg, var(--color-pink), var(--color-red));
-    box-shadow: 0 0 16px rgba(255,45,85,0.6);
+  #tap-hint.is-active { opacity: 1; visibility: visible; animation: tapPulse 2.2s ease-in-out infinite; }
+  @keyframes tapPulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+  #debug-error {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 999; max-height: 40vh; overflow: auto;
+    background: rgba(120, 0, 20, 0.92); color: #fff; font-family: monospace; font-size: 11px;
+    padding: 10px 14px; display: none; white-space: pre-wrap; line-height: 1.4;
   }
-  .slider__handle {
-    position: absolute; top: 50%; left: 0%; width: 22px; height: 22px; border-radius: 50%;
-    background: var(--color-white); box-shadow: 0 0 18px rgba(255,92,138,0.8); transform: translate(-50%, -50%);
-  }
-  .slider__value { font-family: 'Marcellus', serif; font-size: 1.4rem; letter-spacing: 0.05em; color: var(--color-pink-soft); }
 </style>
 </head>
 <body>
@@ -116,731 +112,654 @@
     </section>
   </div>
 
+  <div id="tap-hint">✦ toque na tela ✦</div>
+
   <div id="loading-screen">
     <div class="loading-screen__mark">INFINITY LOVE</div>
     <div class="loading-screen__bar"><div class="loading-screen__bar-fill" id="loading-bar-fill"></div></div>
   </div>
 
-<script type="module">
-import * as THREE from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
-import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
-import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js'
-import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
-import gsap from 'gsap'
+  <div id="debug-error"></div>
 
-/* ============================== utils/Random ============================== */
-function randRange(min, max) { return min + Math.random() * (max - min) }
-function randInt(min, max) { return Math.floor(randRange(min, max + 1)) }
-function randChoice(array) { return array[randInt(0, array.length - 1)] }
-function randOnSphere(radius) {
-  const u = Math.random(), v = Math.random()
-  const theta = 2 * Math.PI * u, phi = Math.acos(2 * v - 1)
-  return { x: radius * Math.sin(phi) * Math.cos(theta), y: radius * Math.sin(phi) * Math.sin(theta), z: radius * Math.cos(phi) }
-}
-function clamp(value, min, max) { return Math.max(min, Math.min(max, value)) }
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 
-/* ============================== core/EventEmitter ============================== */
-class EventEmitter {
-  constructor() { this._callbacks = new Map() }
-  on(event, callback) {
-    if (!this._callbacks.has(event)) this._callbacks.set(event, [])
-    this._callbacks.get(event).push(callback)
-    return this
+<script>
+(function () {
+  'use strict';
+
+  window.addEventListener('error', function (event) {
+    var box = document.getElementById('debug-error');
+    box.style.display = 'block';
+    box.textContent = 'Erro: ' + event.message + '\n' + (event.filename || '') + ':' + (event.lineno || '');
+    var ls = document.getElementById('loading-screen');
+    if (ls) ls.classList.add('is-hidden');
+  });
+
+  if (typeof THREE === 'undefined' || typeof gsap === 'undefined') {
+    var box = document.getElementById('debug-error');
+    box.style.display = 'block';
+    box.textContent = 'Nao foi possivel carregar Three.js / GSAP pelo CDN. Verifique sua conexao com a internet e recarregue a pagina.';
+    document.getElementById('loading-screen').classList.add('is-hidden');
+    return;
   }
-  trigger(event, ...args) {
-    if (!this._callbacks.has(event)) return this
-    for (const cb of this._callbacks.get(event)) cb(...args)
-    return this
-  }
-}
 
-/* ============================== core/Sizes ============================== */
-class Sizes extends EventEmitter {
-  constructor() {
-    super()
-    this.width = window.innerWidth
-    this.height = window.innerHeight
-    this.pixelRatio = Math.min(window.devicePixelRatio, 2)
-    window.addEventListener('resize', () => {
-      this.width = window.innerWidth
-      this.height = window.innerHeight
-      this.pixelRatio = Math.min(window.devicePixelRatio, 2)
-      this.trigger('resize')
-    })
-  }
-  get aspect() { return this.width / this.height }
-}
+  function randRange(min, max) { return min + Math.random() * (max - min); }
+  function randInt(min, max) { return Math.floor(randRange(min, max + 1)); }
+  function randChoice(arr) { return arr[randInt(0, arr.length - 1)]; }
+  function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+  function lerp(a, b, t) { return a + (b - a) * t; }
 
-/* ============================== core/Time ============================== */
-class Time extends EventEmitter {
-  constructor() {
-    super()
-    this.start = performance.now()
-    this.current = this.start
-    this.elapsed = 0
-    this.delta = 1 / 60
-    const tick = (now) => {
-      const rawDelta = (now - this.current) / 1000
-      this.delta = Math.min(rawDelta, 1 / 30)
-      this.current = now
-      this.elapsed = (now - this.start) / 1000
-      this.trigger('tick')
-      requestAnimationFrame(tick)
+  var HEART_SCALE = 1 / 5.4;
+  function heartBoundaryPoint(t, scale) {
+    scale = scale || 1;
+    var x = 16 * Math.pow(Math.sin(t), 3);
+    var y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+    return { x: x * HEART_SCALE * scale, y: y * HEART_SCALE * scale };
+  }
+  function buildBoundary(samples, scale) {
+    var pts = [];
+    for (var i = 0; i < samples; i++) pts.push(heartBoundaryPoint((i / samples) * Math.PI * 2, scale));
+    return pts;
+  }
+  function isInsideHeart(boundary, x, y) {
+    var inside = false;
+    for (var i = 0, j = boundary.length - 1; i < boundary.length; j = i++) {
+      var xi = boundary[i].x, yi = boundary[i].y, xj = boundary[j].x, yj = boundary[j].y;
+      var intersects = (yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
+      if (intersects) inside = !inside;
     }
-    requestAnimationFrame(tick)
+    return inside;
   }
-}
-
-/* ============================== core/Scene ============================== */
-class SceneWrapper {
-  constructor() {
-    this.instance = new THREE.Scene()
-    this.instance.background = new THREE.Color(0x000000)
-    this.instance.fog = new THREE.FogExp2(0x000000, 0.035)
-  }
-  add(o) { this.instance.add(o) }
-  remove(o) { this.instance.remove(o) }
-}
-
-/* ============================== core/Camera ============================== */
-class Camera {
-  constructor(experience) {
-    this.sizes = experience.sizes
-    this.scene = experience.scene.instance
-    this.canvas = experience.canvas
-    this.instance = new THREE.PerspectiveCamera(35, this.sizes.aspect, 0.1, 200)
-    this.instance.position.set(0, 0, 12)
-    this.scene.add(this.instance)
-
-    this.controls = new OrbitControls(this.instance, this.canvas)
-    this.controls.enabled = false
-    this.controls.enableDamping = true
-    this.controls.dampingFactor = 0.06
-    this.controls.enablePan = false
-    this.controls.rotateSpeed = 0.5
-    this.controls.zoomSpeed = 0.6
-    this.controls.minDistance = 6
-    this.controls.maxDistance = 16
-    this.controls.minPolarAngle = 0.35
-    this.controls.maxPolarAngle = Math.PI - 0.35
-  }
-  enableControls() { this.controls.enabled = true }
-  resize() { this.instance.aspect = this.sizes.aspect; this.instance.updateProjectionMatrix() }
-  update() { if (this.controls.enabled) this.controls.update() }
-}
-
-/* ============================== core/Renderer ============================== */
-class Renderer {
-  constructor(experience) {
-    this.sizes = experience.sizes
-    this.scene = experience.scene.instance
-    this.camera = experience.camera
-    this.canvas = experience.canvas
-
-    this.instance = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true, alpha: false, powerPreference: 'high-performance' })
-    this.instance.setSize(this.sizes.width, this.sizes.height)
-    this.instance.setPixelRatio(this.sizes.pixelRatio)
-    this.instance.outputColorSpace = THREE.SRGBColorSpace
-    this.instance.toneMapping = THREE.ACESFilmicToneMapping
-    this.instance.toneMappingExposure = 1.1
-
-    this.composer = new EffectComposer(this.instance)
-    this.composer.setSize(this.sizes.width, this.sizes.height)
-    this.composer.setPixelRatio(this.sizes.pixelRatio)
-    this.composer.addPass(new RenderPass(this.scene, this.camera.instance))
-    this.bloomPass = new UnrealBloomPass(new THREE.Vector2(this.sizes.width, this.sizes.height), 0.55, 0.6, 0.82)
-    this.composer.addPass(this.bloomPass)
-    this.composer.addPass(new OutputPass())
-  }
-  pulseBloom(targetStrength, duration = 0.4) {
-    const start = this.bloomPass.strength
-    const startTime = performance.now()
-    const animate = () => {
-      const t = Math.min((performance.now() - startTime) / (duration * 1000), 1)
-      const eased = 1 - Math.pow(1 - t, 3)
-      this.bloomPass.strength = start + (targetStrength - start) * eased
-      if (t < 1) requestAnimationFrame(animate)
+  function sampleFilledHeart(boundary, bound) {
+    for (var attempt = 0; attempt < 50; attempt++) {
+      var x = randRange(-bound, bound), y = randRange(-bound, bound);
+      if (isInsideHeart(boundary, x, y)) return { x: x, y: y };
     }
-    animate()
+    return { x: 0, y: 0 };
   }
-  resize() {
-    this.instance.setSize(this.sizes.width, this.sizes.height)
-    this.instance.setPixelRatio(this.sizes.pixelRatio)
-    this.composer.setSize(this.sizes.width, this.sizes.height)
-    this.composer.setPixelRatio(this.sizes.pixelRatio)
-  }
-  update() { this.composer.render() }
-}
 
-/* ============================== world/Lights ============================== */
-class Lights {
-  constructor(experience) {
-    this.scene = experience.scene
-    this.ambient = new THREE.AmbientLight(0x2a1520, 0.6)
-    this.scene.add(this.ambient)
-    this.keyLight = new THREE.PointLight(0xff5c8a, 12, 30, 2)
-    this.keyLight.position.set(3, 2, 6)
-    this.scene.add(this.keyLight)
-    this.rimLight = new THREE.PointLight(0xff2d55, 8, 40, 2)
-    this.rimLight.position.set(-4, -2, -6)
-    this.scene.add(this.rimLight)
-    this.fillLight = new THREE.DirectionalLight(0xffffff, 0.25)
-    this.fillLight.position.set(0, 5, 5)
-    this.scene.add(this.fillLight)
-  }
-  pulse(mult) { this.keyLight.intensity = 12 * mult; this.rimLight.intensity = 8 * mult }
-}
+  function generateShapeA(count) {
+    var boundaryBig = buildBoundary(240, 1);
+    var positions = new Float32Array(count * 3);
+    var colors = new Float32Array(count * 3);
 
-/* ============================== utils/Performance ============================== */
-class PerformanceMonitor {
-  constructor(time) {
-    this.time = time
-    const cores = navigator.hardwareConcurrency || 4
-    const isMobile = /Mobi|Android/i.test(navigator.userAgent)
-    this.tier = (isMobile && cores <= 4) ? 2 : (isMobile || cores <= 4) ? 1 : 0
-    this._frames = 0; this._elapsedSinceCheck = 0; this._evaluated = false
-    this.time.on('tick', () => {
-      if (this._evaluated) return
-      this._frames += 1
-      this._elapsedSinceCheck += this.time.delta
-      if (this._elapsedSinceCheck >= 2) {
-        const fps = this._frames / this._elapsedSinceCheck
-        if (fps < 35) this.tier = Math.min(this.tier + 1, 2)
-        else if (fps > 55 && this.tier > 0) this.tier -= 1
-        this._evaluated = true
-      }
-    })
-  }
-  get particleMultiplier() { return [1, 0.55, 0.3][this.tier] }
-}
+    var fillCount = Math.floor(count * 0.62);
+    var edgeCount = Math.floor(count * 0.26);
+    var vortexCount = count - fillCount - edgeCount;
 
-/* ============================== utils/WordFactory ============================== */
-const FONT_URL = 'https://unpkg.com/three@0.165.0/examples/fonts/helvetiker_regular.typeface.json'
-const geometryCache = new Map()
-let fontPromise = null
+    var pink = [1.0, 0.42, 0.63];
+    var red = [1.0, 0.18, 0.36];
+    var white = [1.0, 0.85, 0.9];
 
-function loadFont() {
-  if (!fontPromise) {
-    fontPromise = fetch(FONT_URL).then((r) => r.json()).then((data) => new FontLoader().parse(data))
-  }
-  return fontPromise
-}
-function getGeometry(font, text, size, depth) {
-  const key = `${text}__${size}__${depth}`
-  if (geometryCache.has(key)) return geometryCache.get(key)
-  const geometry = new TextGeometry(text, { font, size, depth, curveSegments: 6, bevelEnabled: true, bevelThickness: depth * 0.18, bevelSize: depth * 0.1, bevelSegments: 2 })
-  geometry.center()
-  geometry.computeVertexNormals()
-  geometryCache.set(key, geometry)
-  return geometry
-}
-const MATERIAL_TONES = {
-  red: { color: 0xff2d55, emissive: 0x53000f, emissiveIntensity: 0.35 },
-  pink: { color: 0xff7fa8, emissive: 0x4a0d20, emissiveIntensity: 0.3 },
-  white: { color: 0xfdf3f5, emissive: 0x330014, emissiveIntensity: 0.18 },
-}
-function createMaterial(tone = 'pink') {
-  const s = MATERIAL_TONES[tone] ?? MATERIAL_TONES.pink
-  return new THREE.MeshPhysicalMaterial({ color: s.color, emissive: s.emissive, emissiveIntensity: s.emissiveIntensity, roughness: 0.35, metalness: 0.1, clearcoat: 0.6, clearcoatRoughness: 0.3 })
-}
-const WordFactory = {
-  preload: () => loadFont(),
-  async createWordMesh(text, { size = 0.5, depth = 0.14, tone = 'pink' } = {}) {
-    const font = await loadFont()
-    const geometry = getGeometry(font, text, size, depth)
-    const mesh = new THREE.Mesh(geometry, createMaterial(tone))
-    mesh.castShadow = true
-    mesh.receiveShadow = true
-    return mesh
-  },
-}
+    var idx = 0;
 
-/* ============================== world/IntroTunnel ============================== */
-class IntroTunnel {
-  constructor(experience) {
-    this.scene = experience.scene
-    this.performance = experience.performance
-    this.count = Math.floor(2400 * this.performance.particleMultiplier)
-    this.depth = 60
-    this.radius = 5
-    this._speed = 0
-
-    this.geometry = new THREE.BufferGeometry()
-    const positions = new Float32Array(this.count * 3)
-    const sizes = new Float32Array(this.count)
-    const seeds = new Float32Array(this.count)
-    for (let i = 0; i < this.count; i++) {
-      const i3 = i * 3
-      const r = randRange(0.4, this.radius) * Math.sqrt(Math.random())
-      const angle = randRange(0, Math.PI * 2)
-      positions[i3] = Math.cos(angle) * r
-      positions[i3 + 1] = Math.sin(angle) * r
-      positions[i3 + 2] = -randRange(0, this.depth)
-      sizes[i] = randRange(0.6, 2.6)
-      seeds[i] = Math.random()
+    for (var i = 0; i < fillCount; i++) {
+      var p = sampleFilledHeart(boundaryBig, 3);
+      var z = randRange(-0.4, 0.4);
+      positions[idx * 3] = p.x; positions[idx * 3 + 1] = p.y; positions[idx * 3 + 2] = z;
+      var c = Math.random() > 0.5 ? pink : red;
+      colors[idx * 3] = c[0]; colors[idx * 3 + 1] = c[1]; colors[idx * 3 + 2] = c[2];
+      idx++;
     }
-    this.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-    this.geometry.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1))
-    this.geometry.setAttribute('aSeed', new THREE.BufferAttribute(seeds, 1))
 
-    this.material = new THREE.ShaderMaterial({
-      uniforms: {
-        uColorA: { value: new THREE.Color(0xff9fc0) },
-        uColorB: { value: new THREE.Color(0xff2d55) },
-        uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
-        uOpacity: { value: 0 },
-      },
-      vertexShader: `
-        attribute float aSize;
-        attribute float aSeed;
-        uniform float uPixelRatio;
-        varying float vSeed;
-        varying float vDepth;
-        void main() {
-          vSeed = aSeed;
-          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-          vDepth = clamp(1.0 - (-mvPosition.z / 60.0), 0.0, 1.0);
-          gl_PointSize = aSize * uPixelRatio * (40.0 / -mvPosition.z);
-          gl_Position = projectionMatrix * mvPosition;
-        }
-      `,
-      fragmentShader: `
-        uniform vec3 uColorA;
-        uniform vec3 uColorB;
-        uniform float uOpacity;
-        varying float vSeed;
-        varying float vDepth;
-        void main() {
-          float d = distance(gl_PointCoord, vec2(0.5));
-          if (d > 0.5) discard;
-          float glow = smoothstep(0.5, 0.0, d);
-          vec3 color = mix(uColorA, uColorB, vSeed);
-          float alpha = glow * uOpacity * (0.3 + vDepth * 0.9);
-          gl_FragColor = vec4(color, alpha);
-        }
-      `,
-      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
-    })
-    this.points = new THREE.Points(this.geometry, this.material)
-    this.points.frustumCulled = false
-    this.scene.add(this.points)
+    for (var j = 0; j < edgeCount; j++) {
+      var t = (j / edgeCount) * Math.PI * 2;
+      var pt = heartBoundaryPoint(t, 1);
+      var jitter = randRange(-0.04, 0.04);
+      positions[idx * 3] = pt.x + jitter; positions[idx * 3 + 1] = pt.y + jitter; positions[idx * 3 + 2] = randRange(-0.3, 0.45);
+      colors[idx * 3] = white[0]; colors[idx * 3 + 1] = white[1] * 0.6; colors[idx * 3 + 2] = white[2] * 0.7;
+      idx++;
+    }
+
+    var tipY = heartBoundaryPoint(Math.PI, 1).y;
+    for (var k = 0; k < vortexCount; k++) {
+      var ratio = k / vortexCount;
+      var angle = ratio * Math.PI * 10;
+      var radius = 0.05 + ratio * 0.55;
+      positions[idx * 3] = Math.cos(angle) * radius;
+      positions[idx * 3 + 1] = tipY - 0.15 + Math.sin(angle) * radius * 0.5;
+      positions[idx * 3 + 2] = randRange(-0.15, 0.15);
+      colors[idx * 3] = 1.0; colors[idx * 3 + 1] = 0.5 + ratio * 0.3; colors[idx * 3 + 2] = 0.7;
+      idx++;
+    }
+
+    return { positions: positions, colors: colors };
   }
-  setSpeed(speed) { this._speed = speed }
-  setOpacity(opacity) { this.material.uniforms.uOpacity.value = opacity }
-  update(delta) {
-    if (this._speed <= 0) return
-    const positions = this.geometry.attributes.position.array
-    const advance = this._speed * delta
-    for (let i = 0; i < this.count; i++) {
-      const i3 = i * 3
-      positions[i3 + 2] += advance
-      if (positions[i3 + 2] > 2) {
-        const r = randRange(0.4, this.radius) * Math.sqrt(Math.random())
-        const angle = randRange(0, Math.PI * 2)
-        positions[i3] = Math.cos(angle) * r
-        positions[i3 + 1] = Math.sin(angle) * r
-        positions[i3 + 2] = -this.depth
+
+  function generateShapeB(count) {
+    var positions = new Float32Array(count * 3);
+    var colors = new Float32Array(count * 3);
+
+    var bigCount = Math.floor(count * 0.62);
+    var smallCount = count - bigCount;
+
+    var idx = 0;
+    for (var i = 0; i < bigCount; i++) {
+      var t = (i / bigCount) * Math.PI * 2;
+      var pt = heartBoundaryPoint(t, 1.05);
+      var strokeJitter = randRange(-0.045, 0.045);
+      positions[idx * 3] = pt.x + strokeJitter;
+      positions[idx * 3 + 1] = pt.y + strokeJitter;
+      positions[idx * 3 + 2] = 0.3 + randRange(-0.05, 0.05);
+      colors[idx * 3] = 0.85; colors[idx * 3 + 1] = 0.12; colors[idx * 3 + 2] = 0.32;
+      idx++;
+    }
+    for (var j = 0; j < smallCount; j++) {
+      var t2 = (j / smallCount) * Math.PI * 2;
+      var pt2 = heartBoundaryPoint(t2, 0.46);
+      var strokeJitter2 = randRange(-0.03, 0.03);
+      positions[idx * 3] = pt2.x + strokeJitter2;
+      positions[idx * 3 + 1] = pt2.y + strokeJitter2;
+      positions[idx * 3 + 2] = -0.25 + randRange(-0.05, 0.05);
+      colors[idx * 3] = 1.0; colors[idx * 3 + 1] = 0.92; colors[idx * 3 + 2] = 0.95;
+      idx++;
+    }
+
+    return { positions: positions, colors: colors };
+  }
+
+  function generateExplosionScatter(count) {
+    var positions = new Float32Array(count * 3);
+    for (var i = 0; i < count; i++) {
+      var r = randRange(0.3, 3.2);
+      var theta = randRange(0, Math.PI * 2);
+      var phi = Math.acos(randRange(-1, 1));
+      positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+      positions[i * 3 + 2] = r * Math.cos(phi);
+    }
+    return positions;
+  }
+
+  var cores = navigator.hardwareConcurrency || 4;
+  var isMobile = /Mobi|Android/i.test(navigator.userAgent);
+  var perfTier = (isMobile && cores <= 4) ? 2 : (isMobile || cores <= 4) ? 1 : 0;
+  var particleMultiplier = [1, 0.6, 0.35][perfTier];
+
+  var canvas = document.getElementById('webgl');
+  var scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x000000);
+  scene.fog = new THREE.FogExp2(0x000000, 0.035);
+
+  var sizes = { width: window.innerWidth, height: window.innerHeight, pixelRatio: Math.min(window.devicePixelRatio, 2) };
+
+  var camera = new THREE.PerspectiveCamera(35, sizes.width / sizes.height, 0.1, 200);
+  camera.position.set(0, 0, 12);
+  scene.add(camera);
+
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, powerPreference: 'high-performance' });
+  renderer.setSize(sizes.width, sizes.height);
+  renderer.setPixelRatio(sizes.pixelRatio);
+  if (THREE.ACESFilmicToneMapping) renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.2;
+
+  var controls = new THREE.OrbitControls(camera, canvas);
+  controls.enabled = false;
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.06;
+  controls.enablePan = false;
+  controls.rotateSpeed = 0.5;
+  controls.zoomSpeed = 0.6;
+  controls.minDistance = 5;
+  controls.maxDistance = 16;
+  controls.minPolarAngle = 0.35;
+  controls.maxPolarAngle = Math.PI - 0.35;
+
+  var ambient = new THREE.AmbientLight(0x2a1520, 0.6);
+  scene.add(ambient);
+  var keyLight = new THREE.PointLight(0xff5c8a, 10, 30, 2);
+  keyLight.position.set(3, 2, 6);
+  scene.add(keyLight);
+
+  var HEART_HALF_WIDTH = 1.75;
+  var HEART_HALF_HEIGHT = 1.9;
+  function updateCameraDistance() {
+    var aspect = sizes.width / sizes.height;
+    camera.aspect = aspect;
+    var vFov = camera.fov * (Math.PI / 180);
+    var distForHeight = HEART_HALF_HEIGHT / Math.tan(vFov / 2);
+    var hFovTan = Math.tan(vFov / 2) * aspect;
+    var distForWidth = HEART_HALF_WIDTH / hFovTan;
+    var distance = Math.max(distForHeight, distForWidth, 6) * 1.35;
+    controls.maxDistance = Math.max(distance + 4, 16);
+    if (!controls.enabled) camera.position.z = distance;
+    camera.updateProjectionMatrix();
+  }
+  updateCameraDistance();
+
+  window.addEventListener('resize', function () {
+    sizes.width = window.innerWidth;
+    sizes.height = window.innerHeight;
+    sizes.pixelRatio = Math.min(window.devicePixelRatio, 2);
+    renderer.setSize(sizes.width, sizes.height);
+    renderer.setPixelRatio(sizes.pixelRatio);
+    updateCameraDistance();
+  });
+
+  var tunnelCount = Math.floor(2200 * particleMultiplier);
+  var tunnelDepth = 60, tunnelRadius = 5;
+  var tunnelGeometry = new THREE.BufferGeometry();
+  var tunnelPositions = new Float32Array(tunnelCount * 3);
+  var tunnelSizes = new Float32Array(tunnelCount);
+  var tunnelSeeds = new Float32Array(tunnelCount);
+  for (var ti = 0; ti < tunnelCount; ti++) {
+    var tr = randRange(0.4, tunnelRadius) * Math.sqrt(Math.random());
+    var tangle = randRange(0, Math.PI * 2);
+    tunnelPositions[ti * 3] = Math.cos(tangle) * tr;
+    tunnelPositions[ti * 3 + 1] = Math.sin(tangle) * tr;
+    tunnelPositions[ti * 3 + 2] = -randRange(0, tunnelDepth);
+    tunnelSizes[ti] = randRange(0.6, 2.6);
+    tunnelSeeds[ti] = Math.random();
+  }
+  tunnelGeometry.setAttribute('position', new THREE.BufferAttribute(tunnelPositions, 3));
+  tunnelGeometry.setAttribute('aSize', new THREE.BufferAttribute(tunnelSizes, 1));
+  tunnelGeometry.setAttribute('aSeed', new THREE.BufferAttribute(tunnelSeeds, 1));
+
+  var tunnelMaterial = new THREE.ShaderMaterial({
+    uniforms: {
+      uColorA: { value: new THREE.Color(0xff9fc0) },
+      uColorB: { value: new THREE.Color(0xff2d55) },
+      uPixelRatio: { value: sizes.pixelRatio },
+      uOpacity: { value: 0 },
+    },
+    vertexShader: [
+      'attribute float aSize;',
+      'attribute float aSeed;',
+      'uniform float uPixelRatio;',
+      'varying float vSeed;',
+      'varying float vDepth;',
+      'void main() {',
+      '  vSeed = aSeed;',
+      '  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);',
+      '  vDepth = clamp(1.0 - (-mvPosition.z / 60.0), 0.0, 1.0);',
+      '  gl_PointSize = aSize * uPixelRatio * (40.0 / -mvPosition.z);',
+      '  gl_Position = projectionMatrix * mvPosition;',
+      '}',
+    ].join('\n'),
+    fragmentShader: [
+      'uniform vec3 uColorA;',
+      'uniform vec3 uColorB;',
+      'uniform float uOpacity;',
+      'varying float vSeed;',
+      'varying float vDepth;',
+      'void main() {',
+      '  float d = distance(gl_PointCoord, vec2(0.5));',
+      '  if (d > 0.5) discard;',
+      '  float glow = smoothstep(0.5, 0.0, d);',
+      '  vec3 color = mix(uColorA, uColorB, vSeed);',
+      '  float alpha = glow * uOpacity * (0.3 + vDepth * 0.9);',
+      '  gl_FragColor = vec4(color, alpha);',
+      '}',
+    ].join('\n'),
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+  });
+  var tunnelPoints = new THREE.Points(tunnelGeometry, tunnelMaterial);
+  tunnelPoints.frustumCulled = false;
+  scene.add(tunnelPoints);
+
+  var tunnelSpeed = 0;
+  function setTunnelSpeed(v) { tunnelSpeed = v; }
+  function setTunnelOpacity(v) { tunnelMaterial.uniforms.uOpacity.value = v; }
+  function updateTunnel(delta) {
+    if (tunnelSpeed <= 0) return;
+    var arr = tunnelGeometry.attributes.position.array;
+    var advance = tunnelSpeed * delta;
+    for (var i = 0; i < tunnelCount; i++) {
+      var i3 = i * 3;
+      arr[i3 + 2] += advance;
+      if (arr[i3 + 2] > 2) {
+        var r = randRange(0.4, tunnelRadius) * Math.sqrt(Math.random());
+        var a = randRange(0, Math.PI * 2);
+        arr[i3] = Math.cos(a) * r;
+        arr[i3 + 1] = Math.sin(a) * r;
+        arr[i3 + 2] = -tunnelDepth;
       }
     }
-    this.geometry.attributes.position.needsUpdate = true
+    tunnelGeometry.attributes.position.needsUpdate = true;
   }
-}
 
-/* ============================== world/MatrixRain ============================== */
-function createLoveTexture() {
-  const canvas = document.createElement('canvas')
-  canvas.width = 128; canvas.height = 128
-  const ctx = canvas.getContext('2d')
-  ctx.fillStyle = '#ff5c8a'
-  ctx.font = '700 34px "Marcellus", serif'
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
-  ctx.shadowColor = '#ff2d55'; ctx.shadowBlur = 18
-  ctx.fillText('LOVE', canvas.width / 2, canvas.height / 2)
-  const texture = new THREE.CanvasTexture(canvas)
-  texture.colorSpace = THREE.SRGBColorSpace
-  return texture
-}
-class MatrixRain {
-  constructor(experience) {
-    this.scene = experience.scene
-    this.performance = experience.performance
-    this._layers = []
-    this._texture = createLoveTexture()
-
-    const layerConfigs = [
-      { z: -14, span: 26, count: 90, speed: 1.2, opacity: 0.18, scale: 0.5 },
-      { z: -9, span: 20, count: 70, speed: 1.9, opacity: 0.32, scale: 0.7 },
-      { z: -5, span: 15, count: 50, speed: 2.8, opacity: 0.5, scale: 1 },
-    ]
-    layerConfigs.forEach((config) => {
-      const count = Math.max(8, Math.floor(config.count * this.performance.particleMultiplier))
-      const geometry = new THREE.PlaneGeometry(config.scale, config.scale)
-      const material = new THREE.MeshBasicMaterial({ map: this._texture, transparent: true, opacity: config.opacity, depthWrite: false, blending: THREE.AdditiveBlending })
-      const mesh = new THREE.InstancedMesh(geometry, material, count)
-      mesh.frustumCulled = false
-      const speeds = new Float32Array(count), phases = new Float32Array(count), columnsX = new Float32Array(count)
-      const dummy = new THREE.Object3D()
-      for (let i = 0; i < count; i++) {
-        speeds[i] = config.speed * (0.7 + Math.random() * 0.6)
-        phases[i] = Math.random() * 20
-        columnsX[i] = (Math.random() - 0.5) * config.span
-        dummy.position.set(columnsX[i], phases[i], config.z)
-        dummy.updateMatrix()
-        mesh.setMatrixAt(i, dummy.matrix)
-      }
-      this.scene.add(mesh)
-      this._layers.push({ mesh, speeds, phases, columnsX, z: config.z, span: config.span, count, halfHeight: 12 })
-    })
+  function createLoveTexture() {
+    var c = document.createElement('canvas');
+    c.width = 128; c.height = 128;
+    var ctx = c.getContext('2d');
+    ctx.fillStyle = '#ff5c8a';
+    ctx.font = '700 34px sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.shadowColor = '#ff2d55'; ctx.shadowBlur = 18;
+    ctx.fillText('LOVE', c.width / 2, c.height / 2);
+    return new THREE.CanvasTexture(c);
   }
-  update(delta) {
-    const dummy = new THREE.Object3D()
-    for (const layer of this._layers) {
-      for (let i = 0; i < layer.count; i++) {
-        layer.phases[i] -= layer.speeds[i] * delta
+  var loveTexture = createLoveTexture();
+  var matrixLayers = [];
+  [
+    { z: -14, span: 26, count: 70, speed: 1.2, opacity: 0.16, scale: 0.5 },
+    { z: -9, span: 20, count: 55, speed: 1.9, opacity: 0.28, scale: 0.7 },
+    { z: -5, span: 15, count: 40, speed: 2.8, opacity: 0.45, scale: 1 },
+  ].forEach(function (config) {
+    var count = Math.max(6, Math.floor(config.count * particleMultiplier));
+    var geometry = new THREE.PlaneGeometry(config.scale, config.scale);
+    var material = new THREE.MeshBasicMaterial({ map: loveTexture, transparent: true, opacity: config.opacity, depthWrite: false, blending: THREE.AdditiveBlending });
+    var mesh = new THREE.InstancedMesh(geometry, material, count);
+    mesh.frustumCulled = false;
+    var speeds = new Float32Array(count), phases = new Float32Array(count), columnsX = new Float32Array(count);
+    var dummy = new THREE.Object3D();
+    for (var i = 0; i < count; i++) {
+      speeds[i] = config.speed * (0.7 + Math.random() * 0.6);
+      phases[i] = Math.random() * 20;
+      columnsX[i] = (Math.random() - 0.5) * config.span;
+      dummy.position.set(columnsX[i], phases[i], config.z);
+      dummy.updateMatrix();
+      mesh.setMatrixAt(i, dummy.matrix);
+    }
+    scene.add(mesh);
+    matrixLayers.push({ mesh: mesh, speeds: speeds, phases: phases, columnsX: columnsX, z: config.z, span: config.span, count: count, halfHeight: 12 });
+  });
+  function updateMatrixRain(delta) {
+    var dummy = new THREE.Object3D();
+    matrixLayers.forEach(function (layer) {
+      for (var i = 0; i < layer.count; i++) {
+        layer.phases[i] -= layer.speeds[i] * delta;
         if (layer.phases[i] < -layer.halfHeight) {
-          layer.phases[i] = layer.halfHeight
-          layer.columnsX[i] = (Math.random() - 0.5) * layer.span
+          layer.phases[i] = layer.halfHeight;
+          layer.columnsX[i] = (Math.random() - 0.5) * layer.span;
         }
-        dummy.position.set(layer.columnsX[i], layer.phases[i], layer.z)
-        dummy.updateMatrix()
-        layer.mesh.setMatrixAt(i, dummy.matrix)
+        dummy.position.set(layer.columnsX[i], layer.phases[i], layer.z);
+        dummy.updateMatrix();
+        layer.mesh.setMatrixAt(i, dummy.matrix);
       }
-      layer.mesh.instanceMatrix.needsUpdate = true
+      layer.mesh.instanceMatrix.needsUpdate = true;
+    });
+  }
+
+  function createTitleSprite(text) {
+    var c = document.createElement('canvas');
+    c.width = 1024; c.height = 320;
+    var ctx = c.getContext('2d');
+    ctx.clearRect(0, 0, c.width, c.height);
+    var gradient = ctx.createLinearGradient(0, 0, c.width, 0);
+    gradient.addColorStop(0, '#ff9fc0');
+    gradient.addColorStop(0.5, '#ff2d55');
+    gradient.addColorStop(1, '#ff9fc0');
+    ctx.fillStyle = gradient;
+    ctx.font = 'italic 300 130px Georgia, "Times New Roman", serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(255, 45, 85, 0.85)';
+    ctx.shadowBlur = 40;
+    ctx.fillText(text, c.width / 2, c.height / 2);
+    var texture = new THREE.CanvasTexture(c);
+    var material = new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false });
+    var sprite = new THREE.Sprite(material);
+    sprite.scale.set(0.001, 0.001, 1);
+    return sprite;
+  }
+
+  var HEART_COUNT = Math.floor(2600 * particleMultiplier);
+  var shapeAPoints = generateShapeA(HEART_COUNT);
+  var shapeBPoints = generateShapeB(HEART_COUNT);
+  var explosionScatter = generateExplosionScatter(HEART_COUNT);
+
+  var heartGeometry = new THREE.BufferGeometry();
+  heartGeometry.setAttribute('position', new THREE.BufferAttribute(explosionScatter.slice(), 3));
+  heartGeometry.setAttribute('color', new THREE.BufferAttribute(shapeAPoints.colors.slice(), 3));
+  heartGeometry.setAttribute('aSize', new THREE.BufferAttribute(new Float32Array(HEART_COUNT).fill(1.6), 1));
+  var heartPhases = new Float32Array(HEART_COUNT);
+  for (var hp = 0; hp < HEART_COUNT; hp++) heartPhases[hp] = Math.random() * Math.PI * 2;
+
+  var heartMaterial = new THREE.ShaderMaterial({
+    uniforms: { uPixelRatio: { value: sizes.pixelRatio }, uOpacity: { value: 0 } },
+    vertexShader: [
+      'attribute float aSize;',
+      'attribute vec3 color;',
+      'uniform float uPixelRatio;',
+      'varying vec3 vColor;',
+      'void main() {',
+      '  vColor = color;',
+      '  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);',
+      '  gl_PointSize = aSize * uPixelRatio * (60.0 / -mvPosition.z);',
+      '  gl_Position = projectionMatrix * mvPosition;',
+      '}',
+    ].join('\n'),
+    fragmentShader: [
+      'uniform float uOpacity;',
+      'varying vec3 vColor;',
+      'void main() {',
+      '  float d = distance(gl_PointCoord, vec2(0.5));',
+      '  if (d > 0.5) discard;',
+      '  float glow = smoothstep(0.5, 0.0, d);',
+      '  gl_FragColor = vec4(vColor, glow * uOpacity);',
+      '}',
+    ].join('\n'),
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+  });
+  var heartPoints = new THREE.Points(heartGeometry, heartMaterial);
+  heartPoints.frustumCulled = false;
+  heartPoints.visible = false;
+  scene.add(heartPoints);
+
+  var heartState = { isShapeA: true, morphing: false, ready: false };
+
+  function startHeartMorph(toPositions, toColors) {
+    var fromPositions = heartGeometry.attributes.position.array.slice();
+    var fromColors = heartGeometry.attributes.color.array.slice();
+    heartState.morphing = true;
+    var proxy = { t: 0 };
+    gsap.to(proxy, {
+      t: 1,
+      duration: 2.2,
+      ease: 'power3.inOut',
+      onUpdate: function () {
+        var pos = heartGeometry.attributes.position.array;
+        var col = heartGeometry.attributes.color.array;
+        for (var i = 0; i < HEART_COUNT; i++) {
+          var i3 = i * 3;
+          pos[i3] = lerp(fromPositions[i3], toPositions[i3], proxy.t);
+          pos[i3 + 1] = lerp(fromPositions[i3 + 1], toPositions[i3 + 1], proxy.t);
+          pos[i3 + 2] = lerp(fromPositions[i3 + 2], toPositions[i3 + 2], proxy.t);
+          col[i3] = lerp(fromColors[i3], toColors[i3], proxy.t);
+          col[i3 + 1] = lerp(fromColors[i3 + 1], toColors[i3 + 1], proxy.t);
+          col[i3 + 2] = lerp(fromColors[i3 + 2], toColors[i3 + 2], proxy.t);
+        }
+        heartGeometry.attributes.position.needsUpdate = true;
+        heartGeometry.attributes.color.needsUpdate = true;
+      },
+      onComplete: function () { heartState.morphing = false; },
+    });
+  }
+
+  function toggleHeartShape() {
+    if (!heartState.ready || heartState.morphing) return;
+    heartState.isShapeA = !heartState.isShapeA;
+    var target = heartState.isShapeA ? shapeAPoints : shapeBPoints;
+    startHeartMorph(target.positions, target.colors);
+  }
+
+  function startHeartbeat() {
+    var scaleProxy = { v: 1 };
+    gsap.to(scaleProxy, {
+      v: 1.045, duration: 0.55, ease: 'sine.inOut', yoyo: true, repeat: -1,
+      onUpdate: function () { heartPoints.scale.setScalar(scaleProxy.v); keyLight.intensity = 10 * scaleProxy.v; },
+    });
+  }
+
+  function updateHeartJitter(elapsed) {
+    if (!heartPoints.visible || heartState.morphing) return;
+    var sizeAttr = heartGeometry.attributes.aSize.array;
+    for (var i = 0; i < HEART_COUNT; i += 7) {
+      sizeAttr[i] = 1.4 + Math.sin(elapsed * 2 + heartPhases[i]) * 0.5;
     }
+    heartGeometry.attributes.aSize.needsUpdate = true;
   }
-}
 
-/* ============================== world/Questions ============================== */
-class Questions {
-  constructor({ onYes }) {
-    this.onYes = onYes
-    this.stageEl = document.getElementById('stage-question-one')
-    this.actionsEl = this.stageEl.querySelector('.stage__actions')
-    this.yesBtn = document.getElementById('btn-yes-one')
-    this.noBtn = document.getElementById('btn-no-one')
-    this._yesScale = 1
-    this._lastBehavior = -1
+  var stageQuestionOne = document.getElementById('stage-question-one');
+  var actionsEl = stageQuestionOne.querySelector('.stage__actions');
+  var yesBtn = document.getElementById('btn-yes-one');
+  var noBtn = document.getElementById('btn-no-one');
+  var yesScale = 1;
+  var lastBehavior = -1;
 
-    const onNoInteract = (event) => {
-      event.preventDefault()
-      this._growYes()
-      this._reactNoButton()
-    }
-    this.noBtn.addEventListener('pointerenter', onNoInteract)
-    this.noBtn.addEventListener('click', onNoInteract)
-    this.yesBtn.addEventListener('click', (event) => {
-      event.preventDefault()
-      this.hide()
-      this.onYes?.()
-    })
+  function growYes() {
+    yesScale = Math.min(yesScale + 0.06, 1.9);
+    gsap.to(yesBtn, { scale: yesScale, duration: 0.45, ease: 'back.out(2)' });
   }
-  show() { this.stageEl.classList.add('is-active') }
-  hide() { this.stageEl.classList.remove('is-active') }
-  _growYes() {
-    this._yesScale = Math.min(this._yesScale + 0.06, 1.9)
-    gsap.to(this.yesBtn, { scale: this._yesScale, duration: 0.45, ease: 'back.out(2)' })
-  }
-  _reactNoButton() {
-    const behaviors = ['teleport', 'flee', 'spin', 'shrink', 'orbit']
-    let behavior = randChoice(behaviors)
-    while (behavior === this._lastBehavior && behaviors.length > 1) behavior = randChoice(behaviors)
-    this._lastBehavior = behavior
+  function reactNoButton() {
+    var behaviors = ['teleport', 'flee', 'spin', 'shrink', 'orbit'];
+    var behavior = randChoice(behaviors);
+    while (behavior === lastBehavior && behaviors.length > 1) behavior = randChoice(behaviors);
+    lastBehavior = behavior;
 
-    const bounds = this.actionsEl.getBoundingClientRect()
-    const maxX = bounds.width / 2 - 60
-    const maxY = bounds.height / 2 - 20
+    var bounds = actionsEl.getBoundingClientRect();
+    var maxX = bounds.width / 2 - 70;
+    var maxY = bounds.height / 2 - 24;
 
     if (behavior === 'teleport') {
-      const x = randRange(-maxX, maxX), y = randRange(-maxY * 1.4, maxY * 1.4)
-      gsap.to(this.noBtn, { x, y, duration: 0.01, onComplete: () => gsap.fromTo(this.noBtn, { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.35, ease: 'back.out(3)' }) })
+      var x = randRange(-maxX, maxX), y = randRange(-maxY * 1.3, maxY * 1.3);
+      gsap.to(noBtn, { x: x, y: y, duration: 0.01, onComplete: function () {
+        gsap.fromTo(noBtn, { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.35, ease: 'back.out(3)' });
+      }});
     } else if (behavior === 'flee') {
-      gsap.to(this.noBtn, { x: randRange(-maxX, maxX), y: randRange(-maxY, maxY), duration: 0.5, ease: 'power3.out' })
+      gsap.to(noBtn, { x: randRange(-maxX, maxX), y: randRange(-maxY, maxY), duration: 0.5, ease: 'power3.out' });
     } else if (behavior === 'spin') {
-      gsap.to(this.noBtn, { rotate: `+=${randInt(180, 720)}`, duration: 0.8, ease: 'power2.inOut' })
+      gsap.to(noBtn, { rotate: '+=' + randInt(180, 720), duration: 0.8, ease: 'power2.inOut' });
     } else if (behavior === 'shrink') {
-      gsap.to(this.noBtn, { scale: randRange(0.35, 0.6), duration: 0.4, ease: 'power2.out', yoyo: true, repeat: 1, repeatDelay: 0.3 })
+      gsap.to(noBtn, { scale: randRange(0.35, 0.6), duration: 0.4, ease: 'power2.out', yoyo: true, repeat: 1, repeatDelay: 0.3 });
     } else if (behavior === 'orbit') {
-      const radius = randRange(60, Math.min(maxX, maxY)), angle = randRange(0, Math.PI * 2)
-      gsap.to(this.noBtn, { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius, duration: 0.6, ease: 'sine.inOut' })
+      var radius = randRange(50, Math.min(maxX, maxY)), angle = randRange(0, Math.PI * 2);
+      gsap.to(noBtn, { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius, duration: 0.6, ease: 'sine.inOut' });
     }
   }
-}
-
-/* ============================== world/Slider ============================== */
-class Slider {
-  constructor({ onComplete }) {
-    this.onComplete = onComplete
-    this.stageEl = document.getElementById('stage-slider')
-    this.trackEl = document.getElementById('slider-track')
-    this.fillEl = document.getElementById('slider-fill')
-    this.handleEl = document.getElementById('slider-handle')
-    this.valueEl = document.getElementById('slider-value')
-    this._value = 0; this._dragging = false; this._completed = false
-
-    const onMove = (event) => { if (this._dragging) this._updateFromEvent(event) }
-    const onUp = (event) => {
-      this._dragging = false
-      window.removeEventListener('pointermove', onMove)
-      window.removeEventListener('pointerup', onUp)
-      this.trackEl.releasePointerCapture?.(event.pointerId)
-    }
-    this.trackEl.addEventListener('pointerdown', (event) => {
-      this._dragging = true
-      this.trackEl.setPointerCapture(event.pointerId)
-      window.addEventListener('pointermove', onMove)
-      window.addEventListener('pointerup', onUp)
-      this._updateFromEvent(event)
-    })
+  function onNoInteract(event) {
+    event.preventDefault();
+    growYes();
+    reactNoButton();
   }
-  show() { this._value = 0; this._completed = false; this._render(); this.stageEl.classList.add('is-active') }
-  hide() { this.stageEl.classList.remove('is-active') }
-  _updateFromEvent(event) {
-    const bounds = this.trackEl.getBoundingClientRect()
-    const ratio = clamp((event.clientX - bounds.left) / bounds.width, 0, 1)
-    this._value = Math.round(ratio * 100)
-    this._render()
-    if (this._value >= 100 && !this._completed) { this._completed = true; this._onFilled() }
+  noBtn.addEventListener('pointerdown', onNoInteract);
+  noBtn.addEventListener('pointerenter', onNoInteract);
+  yesBtn.addEventListener('click', function (event) {
+    event.preventDefault();
+    stageQuestionOne.classList.remove('is-active');
+    showSlider();
+  });
+
+  var stageSlider = document.getElementById('stage-slider');
+  var trackEl = document.getElementById('slider-track');
+  var fillEl = document.getElementById('slider-fill');
+  var handleEl = document.getElementById('slider-handle');
+  var valueEl = document.getElementById('slider-value');
+  var sliderValue = 0, sliderDragging = false, sliderCompleted = false;
+
+  function renderSlider() {
+    fillEl.style.width = sliderValue + '%';
+    handleEl.style.left = sliderValue + '%';
+    valueEl.textContent = sliderValue + '%';
   }
-  _render() {
-    this.fillEl.style.width = `${this._value}%`
-    this.handleEl.style.left = `${this._value}%`
-    this.valueEl.textContent = `${this._value}%`
-  }
-  _onFilled() {
-    gsap.to(this.valueEl, { scale: 1.3, duration: 0.25, yoyo: true, repeat: 1, ease: 'power2.out' })
-    this.hide()
-    this.onComplete?.()
-  }
-}
-
-/* ============================== world/WordExplosion ============================== */
-const HEART_WORDS = ['love', 'always', 'forever', 'kiss', 'mine', 'my love', 'beautiful', 'together', 'destiny', 'heart', 'happy']
-
-class WordExplosion {
-  constructor(experience) { this.scene = experience.scene; this.renderer = experience.renderer }
-
-  async play({ heartWordCount = 110, floatingWordCount = 24 } = {}) {
-    const loveMesh = await WordFactory.createWordMesh('LOVE', { size: 2.4, depth: 0.5, tone: 'red' })
-    loveMesh.scale.setScalar(0.001)
-    loveMesh.position.set(0, 0, 0)
-    this.scene.add(loveMesh)
-
-    await new Promise((resolve) => gsap.to(loveMesh.scale, { x: 1, y: 1, z: 1, duration: 1.1, ease: 'power3.out', onComplete: resolve }))
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
-    this.renderer.pulseBloom(1.4, 0.25)
-    setTimeout(() => this.renderer.pulseBloom(0.55, 0.9), 250)
-
-    await new Promise((resolve) => {
-      gsap.to(loveMesh.scale, { x: 0.001, y: 0.001, z: 0.001, duration: 0.6, ease: 'power2.in', onComplete: () => { this.scene.remove(loveMesh); loveMesh.geometry?.dispose?.(); resolve() } })
-    })
-
-    const total = heartWordCount + floatingWordCount
-    const allMeshes = await this._spawnFragments(total)
-    return { heartWords: allMeshes.slice(0, heartWordCount), floatingWords: allMeshes.slice(heartWordCount) }
-  }
-
-  async _spawnFragments(count) {
-    const meshes = []
-    for (let i = 0; i < count; i++) {
-      const text = HEART_WORDS[i % HEART_WORDS.length]
-      const tone = i % 3 === 0 ? 'white' : i % 3 === 1 ? 'pink' : 'red'
-      const mesh = await WordFactory.createWordMesh(text, { size: 0.34, depth: 0.1, tone })
-      mesh.userData.tone = tone
-      const spread = randOnSphere(0.6 + Math.random() * 2.2)
-      mesh.position.set(spread.x, spread.y, spread.z)
-      mesh.rotation.set(Math.random() * 0.6, Math.random() * Math.PI * 2, Math.random() * 0.6)
-      mesh.scale.setScalar(0.001)
-      this.scene.add(mesh)
-      meshes.push(mesh)
-      gsap.to(mesh.scale, { x: 1, y: 1, z: 1, duration: 0.6, delay: Math.random() * 0.4, ease: 'back.out(2)' })
-    }
-    return meshes
-  }
-}
-
-/* ============================== animations/HeartAnimation ============================== */
-class HeartAnimation {
-  constructor(lights) { this.lights = lights; this._tween = null; this._meshes = [] }
-  start(meshes) {
-    this._meshes = meshes
-    const scaleTarget = { value: 1 }
-    this._tween = gsap.to(scaleTarget, {
-      value: 1.045, duration: 0.55, ease: 'sine.inOut', yoyo: true, repeat: -1,
-      onUpdate: () => { for (const m of this._meshes) m.scale.setScalar(scaleTarget.value); this.lights?.pulse(scaleTarget.value) },
-    })
-  }
-}
-
-/* ============================== world/HeartBuilder ============================== */
-const BOUNDARY_SAMPLES = 240
-const HEART_SCALE = 1 / 5.4
-function heartBoundaryPoint(t) {
-  const x = 16 * Math.sin(t) ** 3
-  const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)
-  return { x: x * HEART_SCALE, y: y * HEART_SCALE }
-}
-function buildBoundary() {
-  const points = []
-  for (let i = 0; i < BOUNDARY_SAMPLES; i++) points.push(heartBoundaryPoint((i / BOUNDARY_SAMPLES) * Math.PI * 2))
-  return points
-}
-function isInsideHeart(boundary, x, y) {
-  let inside = false
-  for (let i = 0, j = boundary.length - 1; i < boundary.length; j = i++) {
-    const xi = boundary[i].x, yi = boundary[i].y, xj = boundary[j].x, yj = boundary[j].y
-    const intersects = (yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi
-    if (intersects) inside = !inside
-  }
-  return inside
-}
-function sampleFilledHeart(boundary) {
-  for (let attempt = 0; attempt < 60; attempt++) {
-    const x = randRange(-3, 3), y = randRange(-3, 3)
-    if (isInsideHeart(boundary, x, y)) return { x, y }
-  }
-  return { x: 0, y: 0 }
-}
-class HeartBuilder {
-  constructor(experience) {
-    this.scene = experience.scene
-    this.lights = experience.lights
-    this._boundary = buildBoundary()
-    this.heartAnimation = new HeartAnimation(this.lights)
-  }
-  async build(words, { onComplete } = {}) {
-    const layerZ = { red: 0.35, pink: 0, white: -0.35 }
-    const targets = words.map((mesh) => {
-      const { x, y } = sampleFilledHeart(this._boundary)
-      const tone = mesh.userData.tone ?? 'pink'
-      const z = layerZ[tone] + randRange(-0.06, 0.06)
-      return { mesh, position: { x, y, z } }
-    })
-
-    const timeline = gsap.timeline()
-    targets.forEach(({ mesh, position }, index) => {
-      const delay = randRange(0, 1.6) + index * 0.006
-      timeline.to(mesh.position, { x: position.x, y: position.y, z: position.z, duration: randRange(1.3, 2.0), ease: 'power3.inOut' }, delay)
-      timeline.to(mesh.rotation, { x: 0, y: 0, z: 0, duration: randRange(1.3, 2.0), ease: 'power3.inOut' }, delay)
-    })
-
-    await new Promise((resolve) => timeline.eventCallback('onComplete', resolve))
-    this.heartAnimation.start(words)
-    onComplete?.()
-  }
-}
-
-/* ============================== world/FloatingWords ============================== */
-class FloatingWords {
-  constructor() { this._items = [] }
-  setWords(meshes) {
-    this._items = meshes.map((mesh) => ({
-      mesh,
-      angleXY: Math.random() * Math.PI * 2,
-      speed: randRange(0.04, 0.12) * (Math.random() > 0.5 ? 1 : -1),
-      bobSpeed: randRange(0.3, 0.8),
-      bobAmount: randRange(0.15, 0.4),
-      spinSpeed: randRange(-0.3, 0.3),
-      basePosition: mesh.position.clone(),
-    }))
-  }
-  update(elapsed, delta) {
-    for (const item of this._items) {
-      item.angleXY += item.speed * delta
-      const x = item.basePosition.x + Math.cos(item.angleXY) * 0.6
-      const y = item.basePosition.y + Math.sin(elapsed * item.bobSpeed) * item.bobAmount
-      const z = item.basePosition.z + Math.sin(item.angleXY) * 0.6
-      item.mesh.position.set(x, y, z)
-      item.mesh.rotation.y += item.spinSpeed * delta
+  function updateSliderFromEvent(event) {
+    var bounds = trackEl.getBoundingClientRect();
+    var ratio = clamp((event.clientX - bounds.left) / bounds.width, 0, 1);
+    sliderValue = Math.round(ratio * 100);
+    renderSlider();
+    if (sliderValue >= 100 && !sliderCompleted) {
+      sliderCompleted = true;
+      onSliderFilled();
     }
   }
-}
+  trackEl.addEventListener('pointerdown', function (event) {
+    sliderDragging = true;
+    trackEl.setPointerCapture(event.pointerId);
+    updateSliderFromEvent(event);
+  });
+  window.addEventListener('pointermove', function (event) { if (sliderDragging) updateSliderFromEvent(event); });
+  window.addEventListener('pointerup', function () { sliderDragging = false; });
 
-/* ============================== animations/IntroAnimation ============================== */
-class IntroAnimation {
-  constructor(tunnel) { this.tunnel = tunnel }
-  play({ onComplete } = {}) {
-    const proxy = { speed: 0, opacity: 0 }
-    const timeline = gsap.timeline({ onComplete: () => onComplete?.() })
-    timeline.to(proxy, { opacity: 1, duration: 0.8, ease: 'power1.out', onUpdate: () => this.tunnel.setOpacity(proxy.opacity) })
-    timeline.to(proxy, { speed: 34, duration: 2.1, ease: 'power2.in', onUpdate: () => this.tunnel.setSpeed(proxy.speed) }, 0.1)
-    timeline.to(proxy, { speed: 0, duration: 1.6, ease: 'power3.out', onUpdate: () => this.tunnel.setSpeed(proxy.speed) })
-    timeline.to(proxy, { opacity: 0, duration: 1.1, ease: 'power1.inOut', onUpdate: () => this.tunnel.setOpacity(proxy.opacity) }, '-=0.5')
-    return timeline
+  function showSlider() {
+    sliderValue = 0; sliderCompleted = false; renderSlider();
+    stageSlider.classList.add('is-active');
   }
-  burst() {
-    const proxy = { opacity: 0 }
-    this.tunnel.setSpeed(18)
-    gsap.to(proxy, { opacity: 0.8, duration: 0.3, yoyo: true, repeat: 1, onUpdate: () => this.tunnel.setOpacity(proxy.opacity), onComplete: () => this.tunnel.setSpeed(0) })
-  }
-}
+  function onSliderFilled() {
+    gsap.to(valueEl, { scale: 1.3, duration: 0.25, yoyo: true, repeat: 1, ease: 'power2.out' });
+    stageSlider.classList.remove('is-active');
 
-/* ============================== core/Experience ============================== */
-class Experience {
-  constructor(canvas) {
-    this.canvas = canvas
-    this.sizes = new Sizes()
-    this.time = new Time()
-    this.scene = new SceneWrapper()
-    this.performance = new PerformanceMonitor(this.time)
-    this.camera = new Camera(this)
-    this.renderer = new Renderer(this)
-    this.lights = new Lights(this)
-    this.tunnel = new IntroTunnel(this)
-    this.matrixRain = new MatrixRain(this)
-    this.introAnimation = new IntroAnimation(this.tunnel)
-    this.wordExplosion = new WordExplosion(this)
-    this.heartBuilder = new HeartBuilder(this)
-    this.floatingWords = new FloatingWords()
+    setTunnelSpeed(16);
+    var proxy = { o: 0 };
+    gsap.to(proxy, { o: 0.7, duration: 0.3, yoyo: true, repeat: 1, onUpdate: function () { setTunnelOpacity(proxy.o); }, onComplete: function () { setTunnelSpeed(0); } });
 
-    this.sizes.on('resize', () => { this.camera.resize(); this.renderer.resize() })
-    this.time.on('tick', () => this._onTick())
-
-    this._boot()
+    setTimeout(playTitleAndHeart, 500);
   }
 
-  async _boot() {
-    const barFill = document.getElementById('loading-bar-fill')
-    if (barFill) barFill.style.width = '35%'
-    await WordFactory.preload()
-    if (barFill) barFill.style.width = '100%'
-    setTimeout(() => document.getElementById('loading-screen')?.classList.add('is-hidden'), 200)
-    this.introAnimation.play({ onComplete: () => this._showQuestionOne() })
+  var tapHintEl = document.getElementById('tap-hint');
+
+  function playTitleAndHeart() {
+    var titleSprite = createTitleSprite('I LOVE YOU');
+    scene.add(titleSprite);
+
+    var targetScaleX = 4.2, targetScaleY = 4.2 * (320 / 1024);
+    gsap.to(titleSprite.scale, { x: targetScaleX, y: targetScaleY, duration: 1, ease: 'power3.out' });
+
+    setTimeout(function () {
+      gsap.to(titleSprite.scale, {
+        x: 0.001, y: 0.001, duration: 0.6, ease: 'power2.in',
+        onComplete: function () {
+          scene.remove(titleSprite);
+          titleSprite.material.map.dispose();
+          titleSprite.material.dispose();
+        },
+      });
+      revealHeart();
+    }, 2000);
   }
 
-  _showQuestionOne() {
-    this.questions = new Questions({ onYes: () => this._showSlider() })
-    this.questions.show()
-  }
-  _showSlider() {
-    this.slider = new Slider({ onComplete: () => this._onSliderComplete() })
-    this.slider.show()
-  }
-  _onSliderComplete() {
-    this.introAnimation.burst()
-    setTimeout(() => this._playWordExplosion(), 500)
-  }
-  async _playWordExplosion() {
-    const { heartWords, floatingWords } = await this.wordExplosion.play({ heartWordCount: 110, floatingWordCount: 24 })
-    this.floatingWords.setWords(floatingWords)
-    this.heartBuilder.build(heartWords, { onComplete: () => this.camera.enableControls() })
-  }
-  _onTick() {
-    const { delta, elapsed } = this.time
-    this.tunnel.update(delta)
-    this.matrixRain.update(delta)
-    this.floatingWords.update(elapsed, delta)
-    this.camera.update()
-    this.renderer.update()
-  }
-}
+  function revealHeart() {
+    heartPoints.visible = true;
+    gsap.to(heartMaterial.uniforms.uOpacity, { value: 1, duration: 0.8, ease: 'power1.out' });
+    startHeartMorph(shapeAPoints.positions, shapeAPoints.colors);
 
-const canvas = document.getElementById('webgl')
-window.__infinityLoveExperience = new Experience(canvas)
+    setTimeout(function () {
+      heartState.ready = true;
+      controls.enabled = true;
+      startHeartbeat();
+      tapHintEl.classList.add('is-active');
+    }, 2400);
+  }
+
+  window.addEventListener('pointerdown', function (event) {
+    if (event.target && event.target.closest && (event.target.closest('.stage') || event.target.closest('#tap-hint'))) return;
+    toggleHeartShape();
+  });
+
+  var clockStart = performance.now();
+  var lastTime = clockStart;
+
+  function tick(now) {
+    var delta = Math.min((now - lastTime) / 1000, 1 / 30);
+    lastTime = now;
+    var elapsed = (now - clockStart) / 1000;
+
+    updateTunnel(delta);
+    updateMatrixRain(delta);
+    updateHeartJitter(elapsed);
+    if (controls.enabled) controls.update();
+    renderer.render(scene, camera);
+
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  function playIntro() {
+    var barFill = document.getElementById('loading-bar-fill');
+    if (barFill) barFill.style.width = '100%';
+    setTimeout(function () { document.getElementById('loading-screen').classList.add('is-hidden'); }, 200);
+
+    var proxy = { speed: 0, opacity: 0 };
+    var timeline = gsap.timeline({ onComplete: function () { stageQuestionOne.classList.add('is-active'); } });
+    timeline.to(proxy, { opacity: 1, duration: 0.8, ease: 'power1.out', onUpdate: function () { setTunnelOpacity(proxy.opacity); } });
+    timeline.to(proxy, { speed: 34, duration: 2.1, ease: 'power2.in', onUpdate: function () { setTunnelSpeed(proxy.speed); } }, 0.1);
+    timeline.to(proxy, { speed: 0, duration: 1.6, ease: 'power3.out', onUpdate: function () { setTunnelSpeed(proxy.speed); } });
+    timeline.to(proxy, { opacity: 0, duration: 1.1, ease: 'power1.inOut', onUpdate: function () { setTunnelOpacity(proxy.opacity); } }, '-=0.5');
+  }
+
+  setTimeout(playIntro, 300);
+})();
 </script>
 </body>
 </html>
