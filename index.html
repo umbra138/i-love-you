@@ -86,6 +86,98 @@
     background: rgba(120, 0, 20, 0.92); color: #fff; font-family: monospace; font-size: 11px;
     padding: 10px 14px; display: none; white-space: pre-wrap; line-height: 1.4;
   }
+
+  /* ---------- Botão de aniversário no canto ---------- */
+  #birthday-trigger {
+    position: fixed; top: max(14px, env(safe-area-inset-top)); right: max(14px, env(safe-area-inset-right));
+    z-index: 20; width: 46px; height: 46px; border-radius: 50%;
+    border: 1px solid rgba(255, 92, 138, 0.5); background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(6px); font-size: 22px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; touch-action: manipulation; box-shadow: 0 0 18px rgba(255, 92, 138, 0.3);
+    transition: transform 0.3s var(--ease);
+  }
+  #birthday-trigger:active { transform: scale(0.9); }
+
+  /* ---------- Overlay de aniversário (bolo -> rosa) ---------- */
+  #birthday-overlay {
+    position: fixed; inset: 0; z-index: 60; background: rgba(0, 0, 0, 0.94);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; visibility: hidden; transition: opacity 0.6s var(--ease), visibility 0.6s var(--ease);
+    overflow: hidden;
+  }
+  #birthday-overlay.is-active { opacity: 1; visibility: visible; }
+
+  #birthday-close {
+    position: absolute; top: max(14px, env(safe-area-inset-top)); left: max(14px, env(safe-area-inset-left));
+    z-index: 5; width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.06); color: var(--color-white); font-size: 18px;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; touch-action: manipulation;
+  }
+
+  .bday-scene { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+
+  /* Bolo */
+  #cake-scene { flex-direction: column-reverse; align-items: center; gap: 0; padding-bottom: 8vh; }
+  .cake-layer {
+    border-radius: 14px; box-shadow: 0 8px 26px rgba(255, 45, 85, 0.35), inset 0 -6px 10px rgba(0,0,0,0.15);
+    will-change: transform;
+  }
+  #cake-layer-3 { width: 210px; height: 58px; background: linear-gradient(180deg, #ff8fae, #ff2d55); margin-bottom: -4px; }
+  #cake-layer-2 { width: 160px; height: 50px; background: linear-gradient(180deg, #ffd7e2, #ff9fc0); margin-bottom: -4px; }
+  #cake-layer-1 { width: 112px; height: 42px; background: linear-gradient(180deg, #fff2f5, #ffc2d6); margin-bottom: -2px; }
+  #cake-candle { width: 8px; height: 46px; border-radius: 4px; background: linear-gradient(180deg, #fceabb, #f2c14e); position: relative; }
+  #cake-candle::after {
+    content: ''; position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+    width: 14px; height: 20px; border-radius: 60% 60% 50% 50%;
+    background: radial-gradient(circle at 50% 30%, #fff6d0, #ffb14e 60%, #ff6a1f);
+    box-shadow: 0 0 16px rgba(255, 170, 60, 0.8);
+  }
+
+  #bday-hint {
+    position: absolute; bottom: 3vh; left: 50%; transform: translateX(-50%);
+    font-family: 'Marcellus', serif; font-size: 0.8rem; letter-spacing: 0.1em; color: rgba(255,255,255,0.55);
+    opacity: 0; transition: opacity 0.8s var(--ease);
+  }
+  #bday-hint.is-active { opacity: 1; }
+
+  /* Rosa + balões + contagem */
+  #rose-scene { flex-direction: column; gap: 1.6rem; opacity: 0; }
+  #rose-scene.is-active { opacity: 1; }
+  #rose-container { position: relative; width: 200px; height: 200px; }
+  .rose-petal {
+    position: absolute; left: 50%; top: 50%; width: 70px; height: 90px;
+    background: radial-gradient(circle at 35% 30%, #ff6b85, #c8102e 70%);
+    border-radius: 0% 100% 0% 100%;
+    transform-origin: 50% 100%;
+    box-shadow: 0 0 20px rgba(200, 16, 46, 0.35);
+  }
+  .rose-stem {
+    position: absolute; left: 50%; top: 68%; width: 6px; height: 90px;
+    background: linear-gradient(180deg, #3f7d4f, #1f4d2a); border-radius: 4px; transform: translateX(-50%);
+  }
+
+  .balloon {
+    position: absolute; width: 54px; height: 66px; border-radius: 50% 50% 46% 46%;
+    box-shadow: inset -8px -8px 14px rgba(0,0,0,0.15), 0 0 20px rgba(255,255,255,0.08);
+    opacity: 0;
+  }
+  .balloon::after {
+    content: ''; position: absolute; left: 50%; top: 100%; width: 1px; height: 40px;
+    background: rgba(255,255,255,0.35); transform: translateX(-50%);
+  }
+  #balloon-1 { left: 6%; top: 20%; background: radial-gradient(circle at 35% 30%, #ff9fc0, #ff2d55); }
+  #balloon-2 { right: 8%; top: 12%; background: radial-gradient(circle at 35% 30%, #ffd7e2, #ff6b85); }
+  #balloon-3 { left: 14%; top: 55%; background: radial-gradient(circle at 35% 30%, #fff2f5, #ffb1c6); }
+  #balloon-4 { right: 4%; top: 48%; background: radial-gradient(circle at 35% 30%, #ff6b85, #a80f28); }
+
+  #mini-cake { display: flex; flex-direction: column-reverse; align-items: center; transform: scale(0.72); }
+
+  #bday-countdown {
+    font-family: 'Marcellus', serif; text-align: center; color: var(--color-pink-soft);
+    letter-spacing: 0.06em;
+  }
+  #bday-countdown .bday-number { font-size: 2.4rem; color: #fff; text-shadow: 0 0 24px rgba(255, 45, 85, 0.6); display: block; }
+  #bday-countdown .bday-label { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.18em; opacity: 0.8; }
 </style>
 </head>
 <body>
@@ -112,7 +204,7 @@
     </section>
   </div>
 
-  <div id="tap-hint">✦ toque na tela ✦</div>
+  <div id="tap-hint">✦ toque 2x na tela ✦</div>
 
   <div id="loading-screen">
     <div class="loading-screen__mark">INFINITY LOVE</div>
@@ -120,6 +212,41 @@
   </div>
 
   <div id="debug-error"></div>
+
+  <button id="birthday-trigger" type="button" aria-label="Surpresa de aniversário">🎂</button>
+
+  <div id="birthday-overlay">
+    <button id="birthday-close" type="button" aria-label="Fechar">✕</button>
+
+    <div class="bday-scene" id="cake-scene">
+      <div class="cake-layer" id="cake-layer-3"></div>
+      <div class="cake-layer" id="cake-layer-2"></div>
+      <div class="cake-layer" id="cake-layer-1"></div>
+      <div id="cake-candle"></div>
+      <div id="bday-hint">toque pra continuar</div>
+    </div>
+
+    <div class="bday-scene" id="rose-scene">
+      <div id="rose-container">
+        <div class="rose-stem"></div>
+      </div>
+      <div id="mini-cake">
+        <div class="cake-layer" id="mini-layer-3" style="width:130px;height:38px;background:linear-gradient(180deg,#ff8fae,#ff2d55);"></div>
+        <div class="cake-layer" id="mini-layer-2" style="width:98px;height:32px;background:linear-gradient(180deg,#ffd7e2,#ff9fc0);"></div>
+        <div class="cake-layer" id="mini-layer-1" style="width:68px;height:26px;background:linear-gradient(180deg,#fff2f5,#ffc2d6);"></div>
+        <div id="mini-candle" style="width:6px;height:30px;border-radius:4px;background:linear-gradient(180deg,#fceabb,#f2c14e);position:relative;"></div>
+      </div>
+      <div id="bday-countdown">
+        <span class="bday-number" id="bday-days">--</span>
+        <span class="bday-label">dias para o seu aniversário • 14/05</span>
+      </div>
+    </div>
+
+    <div class="balloon" id="balloon-1"></div>
+    <div class="balloon" id="balloon-2"></div>
+    <div class="balloon" id="balloon-3"></div>
+    <div class="balloon" id="balloon-4"></div>
+  </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -185,13 +312,13 @@
     var positions = new Float32Array(count * 3);
     var colors = new Float32Array(count * 3);
 
-    var fillCount = Math.floor(count * 0.62);
-    var edgeCount = Math.floor(count * 0.26);
+    var fillCount = Math.floor(count * 0.4);
+    var edgeCount = Math.floor(count * 0.18);
     var vortexCount = count - fillCount - edgeCount;
 
-    var pink = [1.0, 0.42, 0.63];
-    var red = [1.0, 0.18, 0.36];
-    var white = [1.0, 0.85, 0.9];
+    var red = [1.0, 0.06, 0.1];
+    var redDeep = [0.78, 0.02, 0.05];
+    var edgeHighlight = [1.0, 0.16, 0.18];
 
     var idx = 0;
 
@@ -199,7 +326,7 @@
       var p = sampleFilledHeart(boundaryBig, 3);
       var z = randRange(-0.4, 0.4);
       positions[idx * 3] = p.x; positions[idx * 3 + 1] = p.y; positions[idx * 3 + 2] = z;
-      var c = Math.random() > 0.5 ? pink : red;
+      var c = Math.random() > 0.5 ? red : redDeep;
       colors[idx * 3] = c[0]; colors[idx * 3 + 1] = c[1]; colors[idx * 3 + 2] = c[2];
       idx++;
     }
@@ -209,18 +336,20 @@
       var pt = heartBoundaryPoint(t, 1);
       var jitter = randRange(-0.04, 0.04);
       positions[idx * 3] = pt.x + jitter; positions[idx * 3 + 1] = pt.y + jitter; positions[idx * 3 + 2] = randRange(-0.3, 0.45);
-      colors[idx * 3] = white[0]; colors[idx * 3 + 1] = white[1] * 0.6; colors[idx * 3 + 2] = white[2] * 0.7;
+      colors[idx * 3] = edgeHighlight[0]; colors[idx * 3 + 1] = edgeHighlight[1]; colors[idx * 3 + 2] = edgeHighlight[2];
       idx++;
     }
 
+    // Redemoinho/galáxia embaixo do coração — um pouco maior que o próprio coração.
     var tipY = heartBoundaryPoint(Math.PI, 1).y;
     for (var k = 0; k < vortexCount; k++) {
       var ratio = k / vortexCount;
-      var angle = ratio * Math.PI * 10;
-      var radius = 0.05 + ratio * 0.55;
-      positions[idx * 3] = Math.cos(angle) * radius;
-      positions[idx * 3 + 1] = tipY - 0.15 + Math.sin(angle) * radius * 0.5;
-      positions[idx * 3 + 2] = randRange(-0.15, 0.15);
+      var angle = ratio * Math.PI * 26;
+      var radius = 0.15 + Math.pow(ratio, 0.85) * 3.4;
+      var armWobble = Math.sin(angle * 0.5) * 0.15;
+      positions[idx * 3] = Math.cos(angle) * (radius + armWobble);
+      positions[idx * 3 + 1] = tipY - 0.9 + Math.sin(angle) * radius * 0.6;
+      positions[idx * 3 + 2] = randRange(-0.5, 0.5);
       colors[idx * 3] = 1.0; colors[idx * 3 + 1] = 0.5 + ratio * 0.3; colors[idx * 3 + 2] = 0.7;
       idx++;
     }
@@ -232,10 +361,29 @@
     var positions = new Float32Array(count * 3);
     var colors = new Float32Array(count * 3);
 
-    var bigCount = Math.floor(count * 0.62);
-    var smallCount = count - bigCount;
+    // 3 camadas aninhadas: vermelha externa (maior, esmaecida nas bordas),
+    // rosa/vermelha no meio, branca por dentro — cada uma num Z diferente
+    // pra dar profundidade real.
+    var outerCount = Math.floor(count * 0.34);
+    var bigCount = Math.floor(count * 0.4);
+    var smallCount = count - outerCount - bigCount;
 
     var idx = 0;
+
+    // Camada externa: maior, vermelha, esmaecendo nas bordas/pontas do contorno.
+    for (var o = 0; o < outerCount; o++) {
+      var to = (o / outerCount) * Math.PI * 2;
+      var pto = heartBoundaryPoint(to, 1.42);
+      var strokeJitterO = randRange(-0.08, 0.08);
+      positions[idx * 3] = pto.x + strokeJitterO;
+      positions[idx * 3 + 1] = pto.y + strokeJitterO;
+      positions[idx * 3 + 2] = -0.55 + randRange(-0.08, 0.08);
+      // esmaecido: mistura de pontos bem fracos com alguns mais vivos, criando o efeito "meio apagado"
+      var fade = Math.random() < 0.55 ? randRange(0.08, 0.25) : randRange(0.35, 0.6);
+      colors[idx * 3] = 0.9 * fade; colors[idx * 3 + 1] = 0.05 * fade; colors[idx * 3 + 2] = 0.14 * fade;
+      idx++;
+    }
+
     for (var i = 0; i < bigCount; i++) {
       var t = (i / bigCount) * Math.PI * 2;
       var pt = heartBoundaryPoint(t, 1.05);
@@ -313,8 +461,8 @@
   keyLight.position.set(3, 2, 6);
   scene.add(keyLight);
 
-  var HEART_HALF_WIDTH = 1.75;
-  var HEART_HALF_HEIGHT = 1.9;
+  var HEART_HALF_WIDTH = 2.65;
+  var HEART_HALF_HEIGHT = 2.85;
   function updateCameraDistance() {
     var aspect = sizes.width / sizes.height;
     camera.aspect = aspect;
@@ -344,9 +492,15 @@
   var tunnelPositions = new Float32Array(tunnelCount * 3);
   var tunnelSizes = new Float32Array(tunnelCount);
   var tunnelSeeds = new Float32Array(tunnelCount);
+  var tunnelRadii = new Float32Array(tunnelCount);
+  var tunnelAngles = new Float32Array(tunnelCount);
+  var tunnelSpins = new Float32Array(tunnelCount);
   for (var ti = 0; ti < tunnelCount; ti++) {
     var tr = randRange(0.4, tunnelRadius) * Math.sqrt(Math.random());
     var tangle = randRange(0, Math.PI * 2);
+    tunnelRadii[ti] = tr;
+    tunnelAngles[ti] = tangle;
+    tunnelSpins[ti] = randRange(0.6, 1.3) * (Math.random() > 0.5 ? 1 : -1);
     tunnelPositions[ti * 3] = Math.cos(tangle) * tr;
     tunnelPositions[ti * 3 + 1] = Math.sin(tangle) * tr;
     tunnelPositions[ti * 3 + 2] = -randRange(0, tunnelDepth);
@@ -409,9 +563,18 @@
     for (var i = 0; i < tunnelCount; i++) {
       var i3 = i * 3;
       arr[i3 + 2] += advance;
+
+      // Redemoinho: gira em torno do eixo Z, mais rápido perto do centro.
+      var angularSpeed = tunnelSpins[i] * (1.4 / (0.6 + tunnelRadii[i]));
+      tunnelAngles[i] += angularSpeed * delta;
+      arr[i3] = Math.cos(tunnelAngles[i]) * tunnelRadii[i];
+      arr[i3 + 1] = Math.sin(tunnelAngles[i]) * tunnelRadii[i];
+
       if (arr[i3 + 2] > 2) {
         var r = randRange(0.4, tunnelRadius) * Math.sqrt(Math.random());
         var a = randRange(0, Math.PI * 2);
+        tunnelRadii[i] = r;
+        tunnelAngles[i] = a;
         arr[i3] = Math.cos(a) * r;
         arr[i3 + 1] = Math.sin(a) * r;
         arr[i3 + 2] = -tunnelDepth;
@@ -420,57 +583,23 @@
     tunnelGeometry.attributes.position.needsUpdate = true;
   }
 
-  function createLoveTexture() {
-    var c = document.createElement('canvas');
-    c.width = 128; c.height = 128;
-    var ctx = c.getContext('2d');
-    ctx.fillStyle = '#ff5c8a';
-    ctx.font = '700 34px sans-serif';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.shadowColor = '#ff2d55'; ctx.shadowBlur = 18;
-    ctx.fillText('LOVE', c.width / 2, c.height / 2);
-    return new THREE.CanvasTexture(c);
-  }
-  var loveTexture = createLoveTexture();
-  var matrixLayers = [];
-  [
-    { z: -14, span: 26, count: 70, speed: 1.2, opacity: 0.16, scale: 0.5 },
-    { z: -9, span: 20, count: 55, speed: 1.9, opacity: 0.28, scale: 0.7 },
-    { z: -5, span: 15, count: 40, speed: 2.8, opacity: 0.45, scale: 1 },
-  ].forEach(function (config) {
-    var count = Math.max(6, Math.floor(config.count * particleMultiplier));
-    var geometry = new THREE.PlaneGeometry(config.scale, config.scale);
-    var material = new THREE.MeshBasicMaterial({ map: loveTexture, transparent: true, opacity: config.opacity, depthWrite: false, blending: THREE.AdditiveBlending });
-    var mesh = new THREE.InstancedMesh(geometry, material, count);
-    mesh.frustumCulled = false;
-    var speeds = new Float32Array(count), phases = new Float32Array(count), columnsX = new Float32Array(count);
-    var dummy = new THREE.Object3D();
-    for (var i = 0; i < count; i++) {
-      speeds[i] = config.speed * (0.7 + Math.random() * 0.6);
-      phases[i] = Math.random() * 20;
-      columnsX[i] = (Math.random() - 0.5) * config.span;
-      dummy.position.set(columnsX[i], phases[i], config.z);
-      dummy.updateMatrix();
-      mesh.setMatrixAt(i, dummy.matrix);
-    }
-    scene.add(mesh);
-    matrixLayers.push({ mesh: mesh, speeds: speeds, phases: phases, columnsX: columnsX, z: config.z, span: config.span, count: count, halfHeight: 12 });
-  });
-  function updateMatrixRain(delta) {
-    var dummy = new THREE.Object3D();
-    matrixLayers.forEach(function (layer) {
-      for (var i = 0; i < layer.count; i++) {
-        layer.phases[i] -= layer.speeds[i] * delta;
-        if (layer.phases[i] < -layer.halfHeight) {
-          layer.phases[i] = layer.halfHeight;
-          layer.columnsX[i] = (Math.random() - 0.5) * layer.span;
-        }
-        dummy.position.set(layer.columnsX[i], layer.phases[i], layer.z);
-        dummy.updateMatrix();
-        layer.mesh.setMatrixAt(i, dummy.matrix);
-      }
-      layer.mesh.instanceMatrix.needsUpdate = true;
-    });
+  // Pequeno Saturno lá no fundo do redemoinho de partículas (bem discreto).
+  var saturn = new THREE.Group();
+  var saturnBody = new THREE.Mesh(
+    new THREE.SphereGeometry(0.34, 24, 24),
+    new THREE.MeshStandardMaterial({ color: 0xd9c39a, roughness: 0.85, metalness: 0.1, emissive: 0x2a2013, emissiveIntensity: 0.4 })
+  );
+  saturn.add(saturnBody);
+  var saturnRing = new THREE.Mesh(
+    new THREE.RingGeometry(0.5, 0.78, 48),
+    new THREE.MeshBasicMaterial({ color: 0xcbb88a, transparent: true, opacity: 0.55, side: THREE.DoubleSide })
+  );
+  saturnRing.rotation.x = Math.PI / 2.35;
+  saturn.add(saturnRing);
+  saturn.position.set(0, 0, -58);
+  scene.add(saturn);
+  function updateSaturn(delta) {
+    saturn.rotation.y += delta * 0.15;
   }
 
   function createTitleSprite(text) {
@@ -495,7 +624,7 @@
     return sprite;
   }
 
-  var HEART_COUNT = Math.floor(2600 * particleMultiplier);
+  var HEART_COUNT = Math.floor(4400 * particleMultiplier);
   var shapeAPoints = generateShapeA(HEART_COUNT);
   var shapeBPoints = generateShapeB(HEART_COUNT);
   var explosionScatter = generateExplosionScatter(HEART_COUNT);
@@ -503,7 +632,7 @@
   var heartGeometry = new THREE.BufferGeometry();
   heartGeometry.setAttribute('position', new THREE.BufferAttribute(explosionScatter.slice(), 3));
   heartGeometry.setAttribute('color', new THREE.BufferAttribute(shapeAPoints.colors.slice(), 3));
-  heartGeometry.setAttribute('aSize', new THREE.BufferAttribute(new Float32Array(HEART_COUNT).fill(1.6), 1));
+  heartGeometry.setAttribute('aSize', new THREE.BufferAttribute(new Float32Array(HEART_COUNT).fill(2.2), 1));
   var heartPhases = new Float32Array(HEART_COUNT);
   for (var hp = 0; hp < HEART_COUNT; hp++) heartPhases[hp] = Math.random() * Math.PI * 2;
 
@@ -587,7 +716,7 @@
     if (!heartPoints.visible || heartState.morphing) return;
     var sizeAttr = heartGeometry.attributes.aSize.array;
     for (var i = 0; i < HEART_COUNT; i += 7) {
-      sizeAttr[i] = 1.4 + Math.sin(elapsed * 2 + heartPhases[i]) * 0.5;
+      sizeAttr[i] = 1.9 + Math.sin(elapsed * 2 + heartPhases[i]) * 0.6;
     }
     heartGeometry.attributes.aSize.needsUpdate = true;
   }
@@ -722,10 +851,142 @@
     }, 2400);
   }
 
+  var lastHeartTapTime = 0;
   window.addEventListener('pointerdown', function (event) {
-    if (event.target && event.target.closest && (event.target.closest('.stage') || event.target.closest('#tap-hint'))) return;
-    toggleHeartShape();
+    if (event.target && event.target.closest && (event.target.closest('.stage') || event.target.closest('#tap-hint') || event.target.closest('#birthday-trigger') || event.target.closest('#birthday-overlay'))) return;
+    var now = performance.now();
+    if (now - lastHeartTapTime < 500) {
+      toggleHeartShape();
+      lastHeartTapTime = 0;
+    } else {
+      lastHeartTapTime = now;
+    }
   });
+
+  /* ============================== surpresa de aniversário (bolo -> rosa) ============================== */
+  var birthdayTrigger = document.getElementById('birthday-trigger');
+  var birthdayOverlay = document.getElementById('birthday-overlay');
+  var birthdayClose = document.getElementById('birthday-close');
+  var cakeScene = document.getElementById('cake-scene');
+  var roseScene = document.getElementById('rose-scene');
+  var bdayHint = document.getElementById('bday-hint');
+  var roseContainer = document.getElementById('rose-container');
+  var roseBloomed = false;
+  var cakeAdvanceReady = false;
+
+  function buildRosePetals() {
+    if (roseContainer.querySelectorAll('.rose-petal').length) return;
+    var ringCount = 10;
+    for (var i = 0; i < ringCount; i++) {
+      var petal = document.createElement('div');
+      petal.className = 'rose-petal';
+      var angle = (360 / ringCount) * i;
+      var isOuter = i % 2 === 0;
+      petal.style.width = (isOuter ? 78 : 60) + 'px';
+      petal.style.height = (isOuter ? 96 : 76) + 'px';
+      petal.style.marginLeft = -(isOuter ? 39 : 30) + 'px';
+      petal.style.marginTop = -(isOuter ? 96 : 76) + 'px';
+      petal.style.background = isOuter
+        ? 'radial-gradient(circle at 35% 30%, #c8102e, #6e0716 75%)'
+        : 'radial-gradient(circle at 35% 30%, #ff6b85, #c8102e 70%)';
+      petal.style.transform = 'rotate(' + angle + 'deg) scale(0)';
+      petal.dataset.angle = angle;
+      roseContainer.appendChild(petal);
+    }
+  }
+
+  function resetCakeScene() {
+    gsap.set('#cake-layer-3', { y: -420, opacity: 1 });
+    gsap.set('#cake-layer-2', { y: -420, opacity: 1 });
+    gsap.set('#cake-layer-1', { y: -420, opacity: 1 });
+    gsap.set('#cake-candle', { y: -420, opacity: 1 });
+    bdayHint.classList.remove('is-active');
+    cakeAdvanceReady = false;
+    cakeScene.style.display = 'flex';
+    roseScene.classList.remove('is-active');
+    roseScene.style.display = 'none';
+  }
+
+  function playCakeFall() {
+    var tl = gsap.timeline({
+      onComplete: function () {
+        cakeAdvanceReady = true;
+        bdayHint.classList.add('is-active');
+      },
+    });
+    tl.to('#cake-layer-3', { y: 0, duration: 0.9, ease: 'bounce.out' });
+    tl.to('#cake-layer-2', { y: 0, duration: 0.9, ease: 'bounce.out' }, '+=0.15');
+    tl.to('#cake-layer-1', { y: 0, duration: 0.9, ease: 'bounce.out' }, '+=0.15');
+    tl.to('#cake-candle', { y: 0, duration: 0.7, ease: 'bounce.out' }, '+=0.15');
+  }
+
+  function computeDaysUntilBirthday() {
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    var year = today.getFullYear();
+    var target = new Date(year, 4, 14); // mês 4 = maio (0-indexado)
+    if (target < today) target = new Date(year + 1, 4, 14);
+    var diffMs = target - today;
+    return Math.round(diffMs / (1000 * 60 * 60 * 24));
+  }
+
+  function playRoseScene() {
+    cakeScene.style.display = 'none';
+    roseScene.style.display = 'flex';
+    buildRosePetals();
+
+    gsap.set('#rose-scene', { opacity: 0 });
+    gsap.to('#rose-scene', { opacity: 1, duration: 0.7, ease: 'power1.out' });
+
+    var petals = roseContainer.querySelectorAll('.rose-petal');
+    petals.forEach(function (petal, i) {
+      var angle = parseFloat(petal.dataset.angle);
+      var proxy = { s: 0 };
+      gsap.to(proxy, {
+        s: 1,
+        duration: 0.9,
+        delay: i * 0.09,
+        ease: 'back.out(1.7)',
+        onUpdate: function () {
+          petal.style.transform = 'rotate(' + angle + 'deg) scale(' + proxy.s + ')';
+        },
+      });
+    });
+
+    gsap.fromTo('#mini-cake', { scale: 0, opacity: 0 }, { scale: 0.72, opacity: 1, duration: 0.8, delay: 0.5, ease: 'back.out(2)' });
+
+    var balloonIds = ['#balloon-1', '#balloon-2', '#balloon-3', '#balloon-4'];
+    balloonIds.forEach(function (id, i) {
+      gsap.fromTo(id, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 1, delay: 0.3 + i * 0.15, ease: 'power2.out' });
+      gsap.to(id, {
+        y: '+=14', duration: 2.4 + i * 0.3, delay: 1.2 + i * 0.15, yoyo: true, repeat: -1, ease: 'sine.inOut',
+      });
+    });
+
+    var days = computeDaysUntilBirthday();
+    var counter = { n: 0 };
+    gsap.to(counter, {
+      n: days, duration: 1.2, delay: 0.4, ease: 'power2.out',
+      onUpdate: function () { document.getElementById('bday-days').textContent = Math.round(counter.n); },
+    });
+  }
+
+  birthdayTrigger.addEventListener('click', function () {
+    resetCakeScene();
+    birthdayOverlay.classList.add('is-active');
+    setTimeout(playCakeFall, 350);
+  });
+
+  cakeScene.addEventListener('click', function () {
+    if (!cakeAdvanceReady) return;
+    playRoseScene();
+  });
+
+  birthdayClose.addEventListener('click', function (event) {
+    event.stopPropagation();
+    birthdayOverlay.classList.remove('is-active');
+  });
+
 
   var clockStart = performance.now();
   var lastTime = clockStart;
@@ -736,7 +997,7 @@
     var elapsed = (now - clockStart) / 1000;
 
     updateTunnel(delta);
-    updateMatrixRain(delta);
+    updateSaturn(delta);
     updateHeartJitter(elapsed);
     if (controls.enabled) controls.update();
     renderer.render(scene, camera);
