@@ -81,6 +81,11 @@
   #tap-hint.is-active { opacity: 1; visibility: visible; animation: tapPulse 2.2s ease-in-out infinite; }
   @keyframes tapPulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
 
+  /* Dissolve entre a cena cósmica (cena 1) e a cena principal (cena 2) */
+  #scene-fade {
+    position: fixed; inset: 0; background: #000; opacity: 0; pointer-events: none; z-index: 90;
+  }
+
   /* Palavrinhas flutuantes ao redor do coração de galáxia (só aparecem no formato "A") */
   #heart-word-labels {
     position: fixed; inset: 0; z-index: 4; pointer-events: none;
@@ -117,6 +122,72 @@
   }
   #birthday-trigger:active { transform: scale(0.9); }
 
+  /* ---------- Botão do aniversário de namoro (aliança), embaixo do de bolo ---------- */
+  #anniversary-trigger {
+    position: fixed; top: calc(max(14px, env(safe-area-inset-top)) + 54px); right: max(14px, env(safe-area-inset-right));
+    z-index: 20; width: 46px; height: 46px; border-radius: 50%;
+    border: 1px solid rgba(255, 92, 138, 0.5); background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(6px); font-size: 20px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; touch-action: manipulation; box-shadow: 0 0 18px rgba(255, 92, 138, 0.3);
+    transition: transform 0.3s var(--ease);
+  }
+  #anniversary-trigger:active { transform: scale(0.9); }
+
+  /* ---------- Overlay do aniversário de namoro ---------- */
+  #anniversary-overlay {
+    position: fixed; inset: 0; z-index: 60; overflow: hidden;
+    opacity: 0; visibility: hidden; transition: opacity 0.6s var(--ease), visibility 0.6s var(--ease);
+    background: radial-gradient(circle at 50% 38%, #fbf7f0 0%, #f2e9da 70%, #e9deca 100%);
+  }
+  #anniversary-overlay.is-active { opacity: 1; visibility: visible; }
+  #anniversary-close {
+    position: absolute; top: max(14px, env(safe-area-inset-top)); left: max(14px, env(safe-area-inset-left));
+    z-index: 6; width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(51,36,29,0.35);
+    background: rgba(255,255,255,0.5); color: #33241d; font-size: 18px;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; touch-action: manipulation;
+  }
+  #leaf-field { position: absolute; inset: 0; z-index: 4; overflow: hidden; pointer-events: none; }
+  .leaf-item { position: absolute; font-size: 22px; opacity: 0; will-change: transform; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.15)); }
+
+  #anniv-scene {
+    position: absolute; left: 54%; top: 50%; transform: translate(-50%, -58%);
+    display: flex; flex-direction: column; align-items: center; z-index: 2;
+  }
+  #sapling-container { width: min(34vw, 150px); height: auto; }
+  .sapling-svg { width: 100%; height: auto; aspect-ratio: 140 / 190; overflow: visible; }
+
+  /* Linha preta embaixo da árvore — também enche como barra de carregamento quando abre */
+  #anniversary-ground-line {
+    width: 170px; height: 3px; background: rgba(51,36,29,0.18); border-radius: 3px; overflow: hidden; margin-top: -2px;
+  }
+  #anniv-ground-fill { width: 0%; height: 100%; background: #2a1e18; border-radius: 3px; }
+
+  #anniversary-content {
+    position: absolute; left: 5vw; top: 50%; transform: translateY(-50%);
+    z-index: 3; display: flex; flex-direction: column; align-items: flex-start; gap: 1rem;
+    max-width: 40vw;
+  }
+  #anniversary-counter { display: flex; flex-direction: column; gap: 0.5rem; }
+  .anniv-time-block { display: flex; align-items: baseline; gap: 0.5rem; }
+  .anniv-number {
+    font-family: 'Marcellus', serif; font-size: clamp(1.5rem, 5.5vw, 2.1rem); color: #33241d;
+    text-shadow: 0 0 18px rgba(255, 120, 150, 0.35);
+  }
+  .anniv-label { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 0.9rem; color: rgba(51,36,29,0.72); }
+
+  #anniv-week-caption {
+    font-family: 'Cormorant Garamond', serif; font-style: italic; letter-spacing: 0.08em;
+    font-size: 0.82rem; color: rgba(51,36,29,0.75); white-space: nowrap;
+  }
+
+  #anniv-youtube-link {
+    font-family: 'Cormorant Garamond', serif; font-size: 0.9rem; letter-spacing: 0.06em;
+    color: #33241d; text-decoration: none;
+    border: 1px solid rgba(51,36,29,0.4); padding: 0.5rem 1.2rem; border-radius: 999px;
+    background: rgba(255,255,255,0.45); transition: transform 0.3s var(--ease), background 0.3s var(--ease);
+  }
+  #anniv-youtube-link:active { transform: scale(0.95); }
+
   /* ---------- Overlay de aniversário (bolo -> rosa) ---------- */
   #birthday-overlay {
     position: fixed; inset: 0; z-index: 60; background: rgba(0, 0, 0, 0.94);
@@ -135,50 +206,53 @@
 
   .bday-scene { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
 
-  /* Bolo — visual "fatia de chocolate com recheio rosa e cobertura escorrendo" */
+  /* Bolo — elegante, limpo, minimalista, acabamento suave */
   #cake-scene { flex-direction: column-reverse; align-items: center; gap: 0; padding-bottom: 6vh; position: relative; }
   #cake-stack { display: flex; flex-direction: column-reverse; align-items: center; position: relative; }
   .cake-band {
-    width: 172px; height: 18px; background: linear-gradient(180deg, #7a4e2e, #4a2c18);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.35); will-change: transform; border-radius: 8px;
+    width: 180px; height: 20px; background: linear-gradient(180deg, #6b4527, #41280f);
+    box-shadow: 0 5px 14px rgba(40,22,10,0.35), inset 0 2px 2px rgba(255,220,180,0.2);
+    will-change: transform; border-radius: 10px;
   }
   .cake-fill {
-    width: 172px; height: 6px; background: linear-gradient(180deg, #ff5c8a, #ff1f6b);
-    box-shadow: 0 1px 0 rgba(0,0,0,0.15); will-change: transform;
+    width: 180px; height: 4px; background: linear-gradient(180deg, #f9cdd8, #f0a8bb);
+    box-shadow: 0 1px 0 rgba(120,40,70,0.3); will-change: transform; border-radius: 3px;
   }
-  .cake-plate { width: 210px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.9); box-shadow: 0 2px 12px rgba(255,255,255,0.3); margin-top: 4px; }
+  .cake-plate {
+    width: 234px; height: 6px; border-radius: 50%; margin-top: 5px;
+    background: linear-gradient(180deg, #ffffff, #ede3ee);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.16);
+  }
 
-  /* Cada camada vai ficando menor conforme sobe, como um bolo de verdade */
-  #cake-band-3 { width: 172px; }
-  #cake-fill-2 { width: 140px; }
-  #cake-band-2 { width: 140px; }
-  #cake-fill-1 { width: 108px; }
-  #cake-band-1 { width: 108px; }
-
-  #mini-cake .cake-band:nth-of-type(2) { width: 172px; }
-  #mini-cake .cake-fill:nth-of-type(3) { width: 140px; }
-  #mini-cake .cake-band:nth-of-type(4) { width: 140px; }
-  #mini-cake .cake-fill:nth-of-type(5) { width: 108px; }
-  #mini-cake .cake-band:nth-of-type(6) { width: 108px; }
+  /* Cobertura: glacê branco espesso — a geometria é gerada por JS a cada frame */
   .cake-icing {
-    position: relative; width: 128px; height: 22px; margin-bottom: 0; z-index: 2; will-change: transform;
-    background: linear-gradient(180deg, #ffffff, #fdeef2);
-    border-radius: 50% 50% 16% 16% / 100% 100% 30% 30%;
+    position: relative; width: 260px; height: 20px; z-index: 2; will-change: transform;
+    pointer-events: none;
   }
-  .cake-drip {
-    position: absolute; top: 100%; width: 18px; border-radius: 0 0 50% 50%;
-    background: linear-gradient(180deg, #fdeef2, #ffffff); transform-origin: 50% 0%;
-  }
+  .cake-icing-svg { width: 100%; height: 100%; overflow: visible; display: block; }
+
   .cake-candle {
-    position: relative; width: 14px; height: 54px; border-radius: 7px; z-index: 3;
-    background: repeating-linear-gradient(120deg, #ff2d55 0 7px, #ffffff 7px 14px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+    position: relative; width: 14px; height: 52px; border-radius: 8px; z-index: 3;
+    background: repeating-linear-gradient(120deg, #ffffff 0 7px, #f6d6e2 7px 14px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.18), inset 0 2px 2px rgba(255,255,255,0.9);
+  }
+  .cake-candle::before {
+    content: ''; position: absolute; top: -10px; left: 50%; width: 2px; height: 12px;
+    background: #5b4030; transform: translateX(-50%);
   }
   .cake-candle::after {
-    content: ''; position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
-    width: 16px; height: 24px; border-radius: 60% 60% 50% 50%;
-    background: radial-gradient(circle at 50% 35%, #fffde0, #ffe066 55%, #ffc93c 85%);
-    box-shadow: 0 0 22px rgba(255, 224, 100, 0.9);
+    content: ''; position: absolute; top: -21px; left: 50%;
+    width: 16px; height: 26px; border-radius: 50% 50% 46% 46%;
+    background: radial-gradient(circle at 50% 42%, #fff9e0, #ffd978 50%, #ffb84d 78%, rgba(255,150,60,0.55) 100%);
+    box-shadow: 0 0 24px rgba(255,190,90,0.85), 0 0 46px rgba(255,160,60,0.5);
+    transform-origin: 50% 100%;
+    animation: candle-flicker 0.9s ease-in-out infinite;
+  }
+  @keyframes candle-flicker {
+    0%, 100% { transform: translateX(-50%) scale(1) rotate(0deg); }
+    25% { transform: translateX(-50%) scale(1.06, 1.12) rotate(-1.6deg); }
+    50% { transform: translateX(-50%) scale(0.96, 0.9) rotate(1.4deg); }
+    75% { transform: translateX(-50%) scale(1.04, 1.08) rotate(-0.8deg); }
   }
 
   .confetti {
@@ -199,21 +273,17 @@
   #bday-hint.is-active { opacity: 1; }
 
   /* Rosa + balões + contagem */
-  #rose-scene { flex-direction: column; gap: 1.6rem; opacity: 0; }
+  #rose-scene { flex-direction: column; gap: 1.8rem; opacity: 0; z-index: 2; }
   #rose-scene.is-active { opacity: 1; }
-  #rose-container { position: relative; width: 200px; height: 200px; }
-  .rose-petal {
-    position: absolute; left: 50%; top: 50%; width: 70px; height: 90px;
-    background: radial-gradient(circle at 35% 30%, #ff6b85, #c8102e 70%);
-    border-radius: 0% 100% 0% 100%;
-    transform-origin: 50% 100%;
-    box-shadow: 0 0 20px rgba(200, 16, 46, 0.35);
+  .rose-row { display: flex; align-items: center; justify-content: center; gap: 2.2rem; position: relative; z-index: 2; }
+  #rose-container-left, #rose-container-right {
+    position: relative; width: 150px; height: 190px; flex-shrink: 0;
   }
-  .rose-stem {
-    position: absolute; left: 50%; top: 68%; width: 6px; height: 90px;
-    background: linear-gradient(180deg, #3f7d4f, #1f4d2a); border-radius: 4px; transform: translateX(-50%);
-  }
+  .rose-svg { width: 100%; height: 100%; overflow: visible; }
+  .rose-petal-path { transform-box: fill-box; transform-origin: 50% 100%; }
 
+  /* Campo de balões cobrindo a tela inteira, subindo continuamente */
+  #balloon-field { position: absolute; inset: 0; z-index: 1; overflow: hidden; pointer-events: none; }
   .balloon {
     position: absolute; width: 54px; height: 66px; border-radius: 50% 50% 46% 46%;
     box-shadow: inset -8px -8px 14px rgba(0,0,0,0.15), 0 0 20px rgba(255,255,255,0.08);
@@ -223,23 +293,20 @@
     content: ''; position: absolute; left: 50%; top: 100%; width: 1px; height: 40px;
     background: rgba(255,255,255,0.35); transform: translateX(-50%);
   }
-  #balloon-1 { left: 6%; top: 20%; background: radial-gradient(circle at 35% 30%, #ff9fc0, #ff2d55); }
-  #balloon-2 { right: 8%; top: 12%; background: radial-gradient(circle at 35% 30%, #ffd7e2, #ff6b85); }
-  #balloon-3 { left: 14%; top: 55%; background: radial-gradient(circle at 35% 30%, #fff2f5, #ffb1c6); }
-  #balloon-4 { right: 4%; top: 48%; background: radial-gradient(circle at 35% 30%, #ff6b85, #a80f28); }
 
-  #mini-cake { display: flex; flex-direction: column-reverse; align-items: center; transform: scale(0.72); }
+  #mini-cake { display: flex; flex-direction: column-reverse; align-items: center; transform: scale(0.72); flex-shrink: 0; }
 
   #bday-countdown {
     font-family: 'Marcellus', serif; text-align: center; color: var(--color-pink-soft);
-    letter-spacing: 0.06em;
+    letter-spacing: 0.06em; position: relative; z-index: 2;
   }
-  #bday-countdown .bday-number { font-size: 2.4rem; color: #fff; text-shadow: 0 0 24px rgba(255, 45, 85, 0.6); display: block; }
-  #bday-countdown .bday-label { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.18em; opacity: 0.8; }
+  #bday-countdown .bday-number { font-size: 3.4rem; color: #fff; text-shadow: 0 0 28px rgba(255, 45, 85, 0.65); display: block; }
+  #bday-countdown .bday-label { font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.18em; opacity: 0.85; }
 </style>
 </head>
 <body>
   <canvas id="webgl"></canvas>
+  <div id="scene-fade"></div>
 
   <div id="ui-root">
     <section class="stage" id="stage-question-one" data-stage="question-one">
@@ -288,6 +355,7 @@
   <div id="debug-error"></div>
 
   <button id="birthday-trigger" type="button" aria-label="Surpresa de aniversário">🎂</button>
+  <button id="anniversary-trigger" type="button" aria-label="Nosso aniversário de namoro">💍</button>
 
   <div id="birthday-overlay">
     <button id="birthday-close" type="button" aria-label="Fechar">✕</button>
@@ -305,19 +373,28 @@
       <div class="confetti" id="confetti-10" style="left:88%; background:none; color:#ffb1c6; font-size:12px; width:auto; height:auto;">❤</div>
 
       <div id="cake-stack">
-        <div class="cake-plate"></div>
+        <div class="cake-plate" id="cake-plate-main"></div>
         <div class="cake-band" id="cake-band-3"></div>
         <div class="cake-fill" id="cake-fill-2"></div>
         <div class="cake-band" id="cake-band-2"></div>
         <div class="cake-fill" id="cake-fill-1"></div>
         <div class="cake-band" id="cake-band-1"></div>
         <div class="cake-icing" id="cake-icing">
-          <div class="cake-drip" style="left:6%; height:16px;"></div>
-          <div class="cake-drip" style="left:20%; height:26px;"></div>
-          <div class="cake-drip" style="left:36%; height:11px;"></div>
-          <div class="cake-drip" style="left:52%; height:22px;"></div>
-          <div class="cake-drip" style="left:68%; height:14px;"></div>
-          <div class="cake-drip" style="left:84%; height:28px;"></div>
+          <svg id="cake-icing-svg" class="cake-icing-svg" viewBox="0 0 260 20" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="cake-icing-grad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#ffffff"/>
+                <stop offset="55%" stop-color="#fff9fb"/>
+                <stop offset="100%" stop-color="#f7e9ef"/>
+              </linearGradient>
+              <filter id="icing-soft" x="-40%" y="-40%" width="180%" height="260%">
+                <feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="rgba(50,28,14,0.4)"/>
+              </filter>
+            </defs>
+            <g id="icing-body" fill="url(#cake-icing-grad)">
+              <path id="icing-main" filter="url(#icing-soft)"/>
+            </g>
+          </svg>
         </div>
         <div class="cake-candle" id="cake-candle"></div>
       </div>
@@ -326,34 +403,65 @@
     </div>
 
     <div class="bday-scene" id="rose-scene">
-      <div id="rose-container">
-        <div class="rose-stem"></div>
-      </div>
-      <div id="mini-cake">
-        <div class="cake-plate"></div>
-        <div class="cake-band"></div>
-        <div class="cake-fill"></div>
-        <div class="cake-band"></div>
-        <div class="cake-fill"></div>
-        <div class="cake-band"></div>
-        <div class="cake-icing">
-          <div class="cake-drip" style="left:10%; height:12px;"></div>
-          <div class="cake-drip" style="left:32%; height:20px;"></div>
-          <div class="cake-drip" style="left:56%; height:10px;"></div>
-          <div class="cake-drip" style="left:78%; height:18px;"></div>
-        </div>
-        <div class="cake-candle"></div>
-      </div>
+      <div id="balloon-field"></div>
+
       <div id="bday-countdown">
         <span class="bday-number" id="bday-days">--</span>
         <span class="bday-label">dias para o seu aniversário • 14/05</span>
       </div>
+
+      <div class="rose-row">
+        <div id="rose-container-left"></div>
+        <div id="mini-cake">
+          <div class="cake-plate"></div>
+          <div class="cake-band"></div>
+          <div class="cake-fill"></div>
+          <div class="cake-band"></div>
+          <div class="cake-fill"></div>
+          <div class="cake-band"></div>
+          <div class="cake-icing">
+            <svg id="mini-icing-svg" class="cake-icing-svg" viewBox="0 0 260 20" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="cake-icing-grad-mini" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#ffffff"/>
+                  <stop offset="55%" stop-color="#fff9fb"/>
+                  <stop offset="100%" stop-color="#f7e9ef"/>
+                </linearGradient>
+                <filter id="icing-soft-mini" x="-40%" y="-40%" width="180%" height="260%">
+                  <feDropShadow dx="0" dy="3" stdDeviation="2.5" flood-color="rgba(50,28,14,0.35)"/>
+                </filter>
+              </defs>
+              <g id="icing-body-mini" fill="url(#cake-icing-grad-mini)">
+                <path id="icing-main-mini" filter="url(#icing-soft-mini)"/>
+              </g>
+            </svg>
+          </div>
+          <div class="cake-candle"></div>
+        </div>
+        <div id="rose-container-right"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="anniversary-overlay">
+    <button id="anniversary-close" type="button" aria-label="Fechar">✕</button>
+
+    <div id="leaf-field"></div>
+
+    <div id="anniv-scene">
+      <div id="sapling-container"></div>
+      <div id="anniversary-ground-line"><div id="anniv-ground-fill"></div></div>
     </div>
 
-    <div class="balloon" id="balloon-1"></div>
-    <div class="balloon" id="balloon-2"></div>
-    <div class="balloon" id="balloon-3"></div>
-    <div class="balloon" id="balloon-4"></div>
+    <div id="anniversary-content">
+      <div id="anniversary-counter">
+        <div class="anniv-time-block"><span class="anniv-number" id="anniv-days">0</span><span class="anniv-label">dias</span></div>
+        <div class="anniv-time-block"><span class="anniv-number" id="anniv-hours">0</span><span class="anniv-label">horas</span></div>
+        <div class="anniv-time-block"><span class="anniv-number" id="anniv-minutes">0</span><span class="anniv-label">minutos</span></div>
+      </div>
+      <div id="anniv-week-caption">semana 1 de crescimento</div>
+      <a id="anniv-youtube-link" href="https://www.youtube.com/watch?v=nQVaRFP-ppw&list=RDnQVaRFP-ppw&start_radio=1" target="_blank" rel="noopener noreferrer">▶ nossa música</a>
+    </div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -592,6 +700,8 @@
     renderer.setSize(sizes.width, sizes.height);
     renderer.setPixelRatio(sizes.pixelRatio);
     updateCameraDistance();
+    cosmicCamera.aspect = sizes.width / sizes.height;
+    cosmicCamera.updateProjectionMatrix();
   });
 
   var tunnelCount = Math.floor(2200 * particleMultiplier);
@@ -1020,6 +1130,9 @@
     gsap.to(valueEl, { scale: 1.3, duration: 0.25, yoyo: true, repeat: 1, ease: 'power2.out' });
     stageSlider.classList.remove('is-active');
 
+    // sai suavemente da cena cósmica e entra na cena principal (túnel -> coração)
+    switchToMainScene();
+
     setTunnelSpeed(16);
     var proxy = { o: 0 };
     gsap.to(proxy, { o: 0.7, duration: 0.3, yoyo: true, repeat: 1, onUpdate: function () { setTunnelOpacity(proxy.o); }, onComplete: function () { setTunnelSpeed(0); } });
@@ -1065,7 +1178,7 @@
 
   var lastHeartTapTime = 0;
   window.addEventListener('pointerdown', function (event) {
-    if (event.target && event.target.closest && (event.target.closest('.stage') || event.target.closest('#tap-hint') || event.target.closest('#birthday-trigger') || event.target.closest('#birthday-overlay'))) return;
+    if (event.target && event.target.closest && (event.target.closest('.stage') || event.target.closest('#tap-hint') || event.target.closest('#birthday-trigger') || event.target.closest('#birthday-overlay') || event.target.closest('#anniversary-trigger') || event.target.closest('#anniversary-overlay'))) return;
     var now = performance.now();
     if (now - lastHeartTapTime < 500) {
       toggleHeartShape();
@@ -1082,34 +1195,112 @@
   var cakeScene = document.getElementById('cake-scene');
   var roseScene = document.getElementById('rose-scene');
   var bdayHint = document.getElementById('bday-hint');
-  var roseContainer = document.getElementById('rose-container');
+  var roseContainerLeft = document.getElementById('rose-container-left');
+  var roseContainerRight = document.getElementById('rose-container-right');
   var roseBloomed = false;
   var cakeAdvanceReady = false;
 
-  function buildRosePetals() {
-    if (roseContainer.querySelectorAll('.rose-petal').length) return;
-    var ringCount = 10;
-    for (var i = 0; i < ringCount; i++) {
-      var petal = document.createElement('div');
-      petal.className = 'rose-petal';
-      var angle = (360 / ringCount) * i;
-      var isOuter = i % 2 === 0;
-      petal.style.width = (isOuter ? 78 : 60) + 'px';
-      petal.style.height = (isOuter ? 96 : 76) + 'px';
-      petal.style.marginLeft = -(isOuter ? 39 : 30) + 'px';
-      petal.style.marginTop = -(isOuter ? 96 : 76) + 'px';
-      petal.style.background = isOuter
-        ? 'radial-gradient(circle at 35% 30%, #c8102e, #6e0716 75%)'
-        : 'radial-gradient(circle at 35% 30%, #ff6b85, #c8102e 70%)';
-      petal.style.transform = 'rotate(' + angle + 'deg) scale(0)';
-      petal.dataset.angle = angle;
-      roseContainer.appendChild(petal);
+  var SVG_NS = 'http://www.w3.org/2000/svg';
+  function svgEl(tag, attrs) {
+    var e = document.createElementNS(SVG_NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  var PETAL_D = 'M0,0 C-14,-8 -18,-28 -5,-42 C0,-46 0,-46 5,-42 C18,-28 14,-8 0,0 Z';
+  var LEAF_D = 'M0,0 C14,-5 26,-16 30,-30 C30,-15 40,-4 54,0 C40,4 30,15 30,30 C26,16 14,5 0,0 Z';
+
+  // Monta uma rosa realista em SVG: caule (desenhado com stroke-dashoffset),
+  // 2 folhas e 3 anéis de pétalas (externo -> médio -> interno/botão).
+  function buildRealisticRose(container) {
+    if (!container || container.querySelector('svg')) return container._roseData || null;
+
+    var svg = svgEl('svg', { viewBox: '0 0 140 190', class: 'rose-svg' });
+
+    var stem = svgEl('path', {
+      d: 'M70,188 C68,148 76,118 66,95 C58,74 76,58 70,40',
+      fill: 'none', stroke: '#2f6b3a', 'stroke-width': 5, 'stroke-linecap': 'round',
+    });
+    svg.appendChild(stem);
+
+    function addLeaf(x, y, rotate, flip) {
+      var g = svgEl('g', { transform: 'translate(' + x + ',' + y + ') rotate(' + rotate + ') scale(' + (flip ? -0.42 : 0.42) + ',0.42)' });
+      var path = svgEl('path', { d: LEAF_D, fill: '#3c7a49', class: 'rose-leaf-path' });
+      g.appendChild(path);
+      svg.appendChild(g);
+      return path;
     }
+    var leaves = [addLeaf(66, 138, -25, false), addLeaf(74, 112, 205, true)];
+
+    var head = svgEl('g', { transform: 'translate(70,40)' });
+    svg.appendChild(head);
+
+    var ringDefs = [
+      { count: 8, radius: 5, scale: 1.2, from: '#7a0f1e', to: '#b81b34' }, // externo (fica atrás)
+      { count: 6, radius: 3, scale: 0.88, from: '#c8102e', to: '#ff5c72' }, // médio
+      { count: 5, radius: 1, scale: 0.56, from: '#ff6b85', to: '#ffc2cc' }, // interno/botão (fica na frente)
+    ];
+
+    var petals = [];
+    ringDefs.forEach(function (ring, ringIndex) {
+      var gradId = 'roseGrad' + Math.round(Math.random() * 1e6) + '_' + ringIndex;
+      var grad = svgEl('radialGradient', { id: gradId, cx: '35%', cy: '25%' });
+      grad.appendChild(svgEl('stop', { offset: '0%', 'stop-color': ring.to }));
+      grad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': ring.from }));
+      svg.appendChild(grad);
+
+      for (var i = 0; i < ring.count; i++) {
+        var angle = (360 / ring.count) * i + ringIndex * 14 + randRange(-4, 4);
+        var g = svgEl('g', { transform: 'rotate(' + angle + ') translate(0,' + ring.radius + ') scale(' + ring.scale + ')' });
+        var petal = svgEl('path', { d: PETAL_D, fill: 'url(#' + gradId + ')', class: 'rose-petal-path' });
+        g.appendChild(petal);
+        head.appendChild(g);
+        petals.push(petal);
+      }
+    });
+
+    container.appendChild(svg);
+    var data = { svg: svg, stem: stem, leaves: leaves, petals: petals };
+    container._roseData = data;
+    return data;
+  }
+
+  // Cresce a rosa do zero: caule desenhando, depois folhas, depois pétalas (anel de fora pra dentro).
+  function growRose(container, delayBase) {
+    var data = buildRealisticRose(container);
+    if (!data) return;
+
+    var stemLength = data.stem.getTotalLength();
+    data.stem.style.strokeDasharray = stemLength;
+    data.stem.style.strokeDashoffset = stemLength;
+    gsap.to(data.stem, { strokeDashoffset: 0, duration: 1.3, delay: delayBase, ease: 'power2.out' });
+
+    data.leaves.forEach(function (leaf, i) {
+      gsap.set(leaf, { transformOrigin: '0% 50%', scale: 0, opacity: 0 });
+      gsap.to(leaf, { scale: 1, opacity: 1, duration: 0.6, delay: delayBase + 0.5 + i * 0.15, ease: 'back.out(2)' });
+    });
+
+    var petalsPerRing = [8, 6, 5];
+    var petalIndex = 0;
+    petalsPerRing.forEach(function (count, ringIndex) {
+      for (var i = 0; i < count; i++) {
+        var petal = data.petals[petalIndex];
+        gsap.set(petal, { transformOrigin: '50% 100%', scale: 0 });
+        gsap.to(petal, {
+          scale: 1,
+          duration: 0.7,
+          delay: delayBase + 0.9 + ringIndex * 0.5 + i * 0.05,
+          ease: 'back.out(1.6)',
+        });
+        petalIndex++;
+      }
+    });
   }
 
   function resetCakeScene() {
+    gsap.set('#cake-plate-main', { y: -420, opacity: 1, scale: 1 });
     gsap.set(['#cake-band-3', '#cake-fill-2', '#cake-band-2', '#cake-fill-1', '#cake-band-1', '#cake-candle'], { y: -420, opacity: 1, scaleX: 1, scaleY: 1 });
-    gsap.set('#cake-icing', { scaleY: 0, opacity: 0, transformOrigin: '50% 0%' });
+    gsap.set('#icing-body', { opacity: 0 });
     gsap.set('#bday-caption', { opacity: 0, y: 10 });
     bdayHint.classList.remove('is-active');
     cakeAdvanceReady = false;
@@ -1119,10 +1310,11 @@
   }
 
   // Queda suave e "mole": a peça cai e, ao pousar, esmaga levemente e volta ao normal (efeito gelatinoso).
-  function dropSoftly(timeline, selector, position) {
-    timeline.to(selector, { y: 0, duration: 0.75, ease: 'power2.in' }, position);
-    timeline.to(selector, { scaleY: 0.8, scaleX: 1.16, duration: 0.12, ease: 'power1.out' }, '-=0.02');
-    timeline.to(selector, { scaleY: 1, scaleX: 1, duration: 0.45, ease: 'elastic.out(1, 0.55)' });
+  function dropSoftly(timeline, selector, position, restY) {
+    restY = restY || 0;
+    timeline.to(selector, { y: restY, duration: 0.7, ease: 'power2.in' }, position);
+    timeline.to(selector, { scaleY: 0.86, scaleX: 1.08, duration: 0.11, ease: 'power1.out' }, '-=0.02');
+    timeline.to(selector, { scaleY: 1, scaleX: 1, duration: 0.5, ease: 'elastic.out(1, 0.45)' });
   }
 
   function startConfetti() {
@@ -1137,6 +1329,221 @@
     }
   }
 
+  /* ============================== Cobertura física (glacê espesso e viscoso) ============================== */
+  var ICING_CX = 130; // centro da cobertura no viewBox 260x20; topo do bolo = y 20
+  var ICING_DRIPS = [
+    [48, 10, 6], [76, 14, 7], [104, 11, 8], [130, 8, 7],
+    [156, 13, 8], [184, 10, 7], [210, 12, 6]
+  ];
+
+  function lerpVals(a, b, t) { return a + (b - a) * t; }
+
+  // Contorno do bloco que cai: 8 segmentos cúbicos (do topo, no sentido horário).
+  // `elong` estica a massa verticalmente (a base se alonga pelo próprio peso);
+  // `bt` é a posição da base (ponta) do bloco.
+  function blobPoints(cx, elong, bt) {
+    var h = 46 + 56 * elong;
+    var wb = 106 + 8 * elong;
+    var wh = wb / 2;
+    var r = 27;
+    var top = bt - h;
+    return {
+      sx: cx, sy: top,
+      segs: [
+        [cx - wb * 0.10, top + h * 0.16, cx - wb * 0.50, top + h * 0.26, cx - wh, top + h * 0.40],
+        [cx - wh, top + h * 0.50, cx - wh * 0.97, top + h * 0.60, cx - wh * 0.90, top + h * 0.72],
+        [cx - wh * 0.72, top + h * 0.80, cx - r * 0.85, bt - r * 0.50, cx - r * 0.60, bt - r * 0.15],
+        [cx - r * 0.25, bt - r * 0.02, cx - r * 0.08, bt - 2, cx, bt - 1.5],
+        [cx + r * 0.08, bt - 2, cx + r * 0.25, bt - r * 0.02, cx + r * 0.60, bt - r * 0.15],
+        [cx + r * 0.85, bt - r * 0.50, cx + wh * 0.72, top + h * 0.80, cx + wh * 0.90, top + h * 0.72],
+        [cx + wh * 0.97, top + h * 0.60, cx + wh, top + h * 0.50, cx + wh, top + h * 0.40],
+        [cx + wb * 0.50, top + h * 0.26, cx + wb * 0.10, top + h * 0.16, cx, top]
+      ]
+    };
+  }
+
+  // Camada final assentada sobre o bolo (almofada achatada, cantos suaves).
+  function puddlePoints(cx) {
+    return {
+      sx: cx, sy: 5.4,
+      segs: [
+        [cx - 26, 6.0, cx - 56, 6.2, cx - 84, 7.0],
+        [cx - 88, 9.0, cx - 90, 11.0, cx - 90, 14.0],
+        [cx - 90, 17.0, cx - 89, 18.5, cx - 86, 19.5],
+        [cx - 50, 20.0, cx - 24, 20.0, cx, 20.0],
+        [cx + 24, 20.0, cx + 50, 20.0, cx + 86, 19.5],
+        [cx + 89, 18.5, cx + 90, 17.0, cx + 90, 14.0],
+        [cx + 90, 11.0, cx + 88, 9.0, cx + 84, 7.0],
+        [cx + 56, 6.2, cx + 26, 6.0, cx, 5.4]
+      ]
+    };
+  }
+
+  function lerpPoints(a, b, t) {
+    var out = { sx: lerpVals(a.sx, b.sx, t), sy: lerpVals(a.sy, b.sy, t), segs: [] };
+    for (var i = 0; i < 8; i++) {
+      var sa = a.segs[i], sb = b.segs[i], r = [];
+      for (var k = 0; k < 6; k++) r.push(lerpVals(sa[k], sb[k], t));
+      out.segs.push(r);
+    }
+    return out;
+  }
+
+  // Compressão de impacto: achatamento vertical em torno da base + leve alargamento.
+  function squashPoints(p, cx, squash, bt) {
+    if (!squash) return p;
+    var kx = 1 + squash * 0.05;
+    var ky = 1 - squash * 0.24;
+    var out = { sx: cx + (p.sx - cx) * kx, sy: bt - (bt - p.sy) * ky, segs: [] };
+    for (var i = 0; i < 8; i++) {
+      var s = p.segs[i], r = [];
+      for (var k = 0; k < 6; k += 2) {
+        r.push(cx + (s[k] - cx) * kx);
+        r.push(bt - (bt - s[k + 1]) * ky);
+      }
+      out.segs.push(r);
+    }
+    return out;
+  }
+
+  function pointsToPath(p) {
+    var d = 'M' + p.sx + ',' + p.sy;
+    for (var i = 0; i < 8; i++) {
+      var s = p.segs[i];
+      d += ' C' + s[0] + ',' + s[1] + ' ' + s[2] + ',' + s[3] + ' ' + s[4] + ',' + s[5];
+    }
+    return d + ' Z';
+  }
+
+  // Gotas escorrendo pela borda do bolo (grossas, ponta arredondada).
+  function dripPath(cx, w, len, wob, recoil) {
+    var tip = 20 + len + wob - recoil * 3.5;
+    var w2 = w / 2;
+    var neckY = 20 + len * 0.5;
+    return 'M' + (cx - w2) + ',20'
+      + ' C' + (cx - w2) + ',' + neckY + ' ' + (cx - w2 + 2) + ',' + (tip - 8) + ' ' + (cx - w * 0.12) + ',' + tip
+      + ' C' + (cx + w * 0.12) + ',' + tip + ' ' + (cx + w2 - 2) + ',' + (tip - 8) + ' ' + (cx + w2) + ',' + neckY
+      + ' C' + (cx + w2) + ',' + (20 + len * 0.2) + ' ' + (cx + w2) + ',20 ' + (cx + w2) + ',20 Z';
+  }
+
+  // Gota pendurada na borda, presa por um fio estreito (tensão superficial).
+  function dropPath(cx, ty, s, neckW) {
+    var r = s * 0.52;
+    var bottomY = ty + s;
+    var neckY = ty + s * 0.26;
+    return 'M' + (cx - neckW / 2) + ',' + ty
+      + ' C' + (cx - neckW / 2) + ',' + neckY + ' ' + (cx - r) + ',' + (neckY + r * 0.5) + ' ' + (cx - r * 0.7) + ',' + (bottomY - r)
+      + ' C' + (cx - r * 0.2) + ',' + (bottomY - 1) + ' ' + (cx + r * 0.2) + ',' + (bottomY - 1) + ' ' + (cx + r * 0.7) + ',' + (bottomY - r)
+      + ' C' + (cx + r) + ',' + (neckY + r * 0.5) + ' ' + (cx + neckW / 2) + ',' + neckY + ' ' + (cx + neckW / 2) + ',' + ty + ' Z';
+  }
+
+  function renderIcing(ctx) {
+    var cx = ICING_CX;
+    var st = ctx.state;
+    var p;
+    if (st.phase === 'fall') {
+      p = blobPoints(cx, st.elong, st.bt);
+    } else {
+      p = lerpPoints(blobPoints(cx, 1, 20), puddlePoints(cx), st.q);
+    }
+    p = squashPoints(p, cx, st.squash, 20);
+    ctx.main.setAttribute('d', pointsToPath(p));
+    for (var i = 0; i < ctx.drips.length; i++) {
+      var d = ctx.drips[i];
+      d.el.setAttribute('d', dripPath(d.cx, d.w * (1 + 0.22 * d.g), d.len * d.g, d.wob, d.recoil));
+    }
+  }
+
+  function buildIcingCtx(svg, bodySel, mainSel, fillUrl, filterUrl) {
+    var body = svg.querySelector(bodySel);
+    var main = svg.querySelector(mainSel);
+    main.setAttribute('fill', fillUrl);
+    main.setAttribute('filter', filterUrl);
+    var ctx = {
+      body: body, main: main, fillUrl: fillUrl, filterUrl: filterUrl, drips: [],
+      state: { phase: 'fall', elong: 0.25, bt: -120, squash: 0, q: 0, f: 0 },
+    };
+    ICING_DRIPS.forEach(function (cfg) {
+      var el = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      el.setAttribute('fill', fillUrl);
+      el.setAttribute('filter', filterUrl);
+      body.appendChild(el);
+      ctx.drips.push({ el: el, cx: cfg[0], w: cfg[2], len: cfg[1], g: 0, wob: 0, recoil: 0 });
+    });
+    renderIcing(ctx);
+    return ctx;
+  }
+
+  var cakeIcingCtx = buildIcingCtx(
+    document.getElementById('cake-icing-svg'), '#icing-body', '#icing-main',
+    'url(#cake-icing-grad)', 'url(#icing-soft)'
+  );
+  var miniIcingCtx = buildIcingCtx(
+    document.getElementById('mini-icing-svg'), '#icing-body-mini', '#icing-main-mini',
+    'url(#cake-icing-grad-mini)', 'url(#icing-soft-mini)'
+  );
+
+  // Gota pendurada que cresce, rompe o fio e cai; a borda dá um pequeno recuo.
+  function spawnHangingDrop(ctx, idx) {
+    var d = ctx.drips[idx];
+    if (!d || d.g < 0.99) return;
+    var drop = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    drop.setAttribute('fill', ctx.fillUrl);
+    drop.setAttribute('filter', ctx.filterUrl);
+    ctx.body.appendChild(drop);
+    var tipBase = 20 + d.len;
+    var st = { s: 6, neck: 2.6, y: 0, op: 1 };
+    function renderDrop() {
+      drop.setAttribute('d', dropPath(d.cx, tipBase + st.y, st.s, st.neck));
+      drop.setAttribute('opacity', st.op);
+    }
+    renderDrop();
+    gsap.to(st, { s: 11, duration: 0.6, ease: 'power2.in', onUpdate: renderDrop });
+    gsap.to(st, { neck: 0, duration: 0.26, ease: 'power1.in', delay: 0.55, onUpdate: renderDrop });
+    gsap.to(st, { y: 24, duration: 0.5, ease: 'power2.in', delay: 0.75, onUpdate: renderDrop, onComplete: function () { drop.remove(); } });
+    gsap.to(st, { op: 0, duration: 0.3, delay: 0.95, onUpdate: renderDrop });
+    gsap.to(d, { recoil: 1, duration: 0.16, ease: 'power2.out', onUpdate: function () { renderIcing(ctx); } });
+    gsap.to(d, { recoil: 0, duration: 0.4, ease: 'elastic.out(1, 0.35)', delay: 0.14, onUpdate: function () { renderIcing(ctx); } });
+  }
+
+  // Sequência completa: queda gravitacional -> impacto -> espalhamento -> gotejamento -> oscilações.
+  function animateIcing(ctx, tl, startPos) {
+    while (ctx.body.children.length > ctx.drips.length) ctx.body.removeChild(ctx.body.lastChild);
+    ctx.drips.forEach(function (d) { d.g = 0; d.wob = 0; d.recoil = 0; });
+    var st = ctx.state;
+    st.phase = 'fall'; st.elong = 0.25; st.squash = 0; st.q = 0; st.f = 0; st.bt = -120;
+    gsap.set(ctx.body, { opacity: 0 });
+    tl.to(ctx.body, { opacity: 1, duration: 0.12, ease: 'power1.out' }, startPos);
+    // queda: acelera por gravidade e a base se alonga conforme ganha velocidade
+    tl.to(st, { f: 1, duration: 0.55, ease: 'power2.in', onUpdate: function () {
+      st.bt = lerpVals(-120, 20, st.f);
+      st.elong = 0.25 + 0.75 * Math.pow(st.f, 1.5);
+      st.phase = 'fall';
+      renderIcing(ctx);
+    } }, startPos);
+    // impacto: compressão curta, como massa pesada absorvendo o choque
+    tl.to(st, { squash: 1, duration: 0.05, ease: 'power2.in', onUpdate: function () { renderIcing(ctx); } }, '+=0.02');
+    tl.to(st, { squash: 0, duration: 0.1, ease: 'power2.out', onUpdate: function () { renderIcing(ctx); } }, '+=0.01');
+    // a massa assenta, espalha e vira a camada (perde energia aos poucos)
+    tl.to(st, { q: 1, duration: 0.5, ease: 'power2.inOut', onUpdate: function () { st.phase = 'settle'; renderIcing(ctx); } }, '+=0.04');
+    tl.call(function () { st.phase = 'layer'; }, null, '+=0.02');
+    tl.addLabel('icingSettled', '+=0.05');
+    // gotas escorrem pelas bordas, grossas, desacelerando pela viscosidade
+    ctx.drips.forEach(function (d, i) {
+      tl.to(d, { g: 1, duration: 0.95 + i * 0.14, ease: 'power3.inOut', onUpdate: function () { renderIcing(ctx); } }, 'icingSettled+=' + (0.2 + i * 0.09));
+    });
+    // micro-oscilações quase imperceptíveis que somem suavemente
+    var osc = { v: 1 };
+    tl.to(osc, { v: 0, duration: 2.6, ease: 'power3.out', onUpdate: function () {
+      var t = Date.now() / 1000;
+      for (var i = 0; i < ctx.drips.length; i++) ctx.drips[i].wob = osc.v * 1.5 * Math.sin(t * 6.1 + i * 1.7);
+      renderIcing(ctx);
+    } }, 'icingSettled+=1.6');
+    // algumas gotas se soltam da borda (gravidade vence a tensão superficial)
+    tl.call(function () { spawnHangingDrop(ctx, 2); }, null, 'icingSettled+=2.2');
+    tl.call(function () { spawnHangingDrop(ctx, 4); }, null, 'icingSettled+=2.9');
+  }
+
   function playCakeFall() {
     startConfetti();
     var tl = gsap.timeline({
@@ -1146,14 +1553,17 @@
         gsap.to('#bday-caption', { opacity: 1, y: 0, duration: 0.9, ease: 'power2.out' });
       },
     });
-    dropSoftly(tl, '#cake-band-3', 0);
-    dropSoftly(tl, '#cake-fill-2', '+=0.1');
-    dropSoftly(tl, '#cake-band-2', '+=0.1');
-    dropSoftly(tl, '#cake-fill-1', '+=0.1');
-    dropSoftly(tl, '#cake-band-1', '+=0.1');
-    // cobertura: escorre por cima em vez de cair rígida
-    tl.to('#cake-icing', { scaleY: 1, opacity: 1, duration: 1.1, ease: 'power3.out' }, '+=0.1');
-    dropSoftly(tl, '#cake-candle', '+=0.05');
+    tl.to('#cake-plate-main', { y: 0, duration: 0.55, ease: 'power2.in' }, 0);
+    tl.to('#cake-plate-main', { scale: 1.05, duration: 0.12, ease: 'power2.out' }, '-=0.03');
+    tl.to('#cake-plate-main', { scale: 1, duration: 0.5, ease: 'elastic.out(1, 0.5)' });
+    dropSoftly(tl, '#cake-band-3', '-=0.45');
+    dropSoftly(tl, '#cake-fill-2', '+=0.08');
+    dropSoftly(tl, '#cake-band-2', '+=0.08');
+    dropSoftly(tl, '#cake-fill-1', '+=0.08');
+    dropSoftly(tl, '#cake-band-1', '+=0.08');
+    // Cobertura: glacê espesso com física de líquido viscoso
+    animateIcing(cakeIcingCtx, tl, '+=0.06');
+    dropSoftly(tl, '#cake-candle', 'icingSettled+=0.7', 12);
   }
 
   function computeDaysUntilBirthday() {
@@ -1166,38 +1576,59 @@
     return Math.round(diffMs / (1000 * 60 * 60 * 24));
   }
 
+  var BALLOON_COLORS = [
+    'radial-gradient(circle at 35% 30%, #ff9fc0, #ff2d55)',
+    'radial-gradient(circle at 35% 30%, #ffd7e2, #ff6b85)',
+    'radial-gradient(circle at 35% 30%, #fff2f5, #ffb1c6)',
+    'radial-gradient(circle at 35% 30%, #ff6b85, #a80f28)',
+    'radial-gradient(circle at 35% 30%, #ffe9ef, #ff9fc0)',
+    'radial-gradient(circle at 35% 30%, #ff2d55, #7a0f22)',
+  ];
+
+  function spawnBalloonField() {
+    var field = document.getElementById('balloon-field');
+    field.innerHTML = '';
+    var count = 22;
+    for (var i = 0; i < count; i++) {
+      var balloon = document.createElement('div');
+      balloon.className = 'balloon';
+      var scale = randRange(0.55, 1.15);
+      balloon.style.left = randRange(0, 92) + '%';
+      balloon.style.background = BALLOON_COLORS[i % BALLOON_COLORS.length];
+      balloon.style.transform = 'scale(' + scale + ')';
+      balloon.style.top = '112%';
+      field.appendChild(balloon);
+
+      gsap.to(balloon, { opacity: 1, duration: 0.6, delay: Math.random() * 1.5 });
+      gsap.to(balloon, {
+        top: '-25%', duration: 7 + Math.random() * 6, delay: Math.random() * 3, repeat: -1, ease: 'none',
+        onRepeat: function () { this.targets()[0].style.left = randRange(0, 92) + '%'; },
+      });
+      gsap.to(balloon, {
+        x: '+=' + randRange(-18, 18), duration: 2 + Math.random() * 2, yoyo: true, repeat: -1, ease: 'sine.inOut',
+      });
+    }
+  }
+
   function playRoseScene() {
     cakeScene.style.display = 'none';
     roseScene.style.display = 'flex';
-    buildRosePetals();
+    spawnBalloonField();
 
     gsap.set('#rose-scene', { opacity: 0 });
     gsap.to('#rose-scene', { opacity: 1, duration: 0.7, ease: 'power1.out' });
 
-    var petals = roseContainer.querySelectorAll('.rose-petal');
-    petals.forEach(function (petal, i) {
-      var angle = parseFloat(petal.dataset.angle);
-      var proxy = { s: 0 };
-      gsap.to(proxy, {
-        s: 1,
-        duration: 0.9,
-        delay: i * 0.09,
-        ease: 'back.out(1.7)',
-        onUpdate: function () {
-          petal.style.transform = 'rotate(' + angle + 'deg) scale(' + proxy.s + ')';
-        },
-      });
-    });
+    growRose(roseContainerLeft, 0.2);
+    growRose(roseContainerRight, 0.4);
 
     gsap.fromTo('#mini-cake', { scale: 0, opacity: 0 }, { scale: 0.72, opacity: 1, duration: 0.8, delay: 0.5, ease: 'back.out(2)' });
 
-    var balloonIds = ['#balloon-1', '#balloon-2', '#balloon-3', '#balloon-4'];
-    balloonIds.forEach(function (id, i) {
-      gsap.fromTo(id, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 1, delay: 0.3 + i * 0.15, ease: 'power2.out' });
-      gsap.to(id, {
-        y: '+=14', duration: 2.4 + i * 0.3, delay: 1.2 + i * 0.15, yoyo: true, repeat: -1, ease: 'sine.inOut',
-      });
-    });
+    // mesma cobertura física no mini-bolo (cai, achaata, espalha e goteja)
+    gsap.set('#icing-body-mini', { opacity: 0 });
+    var icingTl = gsap.timeline({ delay: 1.35 });
+    animateIcing(miniIcingCtx, icingTl, 0);
+
+    gsap.fromTo('#bday-countdown', { opacity: 0, y: -16 }, { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' });
 
     var days = computeDaysUntilBirthday();
     var counter = { n: 0 };
@@ -1223,6 +1654,702 @@
     birthdayOverlay.classList.remove('is-active');
   });
 
+  /* ============================== aniversário de namoro (paisagem + folhas + contagem + muda) ============================== */
+  var anniversaryTrigger = document.getElementById('anniversary-trigger');
+  var anniversaryOverlay = document.getElementById('anniversary-overlay');
+  var anniversaryClose = document.getElementById('anniversary-close');
+  var leafField = document.getElementById('leaf-field');
+  var saplingContainer = document.getElementById('sapling-container');
+  var weekCaptionEl = document.getElementById('anniv-week-caption');
+
+  var ANNIVERSARY_START = new Date(2026, 6, 10); // 10 de julho de 2026
+  var anniversaryIntervalId = null;
+  var LEAF_GLYPHS = ['🍁', '🍂', '❤'];
+
+  function computeElapsedSince(startDate) {
+    var now = new Date();
+    var diffMs = Math.max(0, now - startDate);
+    var totalMinutes = Math.floor(diffMs / 60000);
+    var days = Math.floor(totalMinutes / (60 * 24));
+    var hours = Math.floor((totalMinutes - days * 60 * 24) / 60);
+    var minutes = totalMinutes - days * 60 * 24 - hours * 60;
+    return { days: days, hours: hours, minutes: minutes };
+  }
+
+  function updateAnniversaryCounter() {
+    var elapsed = computeElapsedSince(ANNIVERSARY_START);
+    document.getElementById('anniv-days').textContent = elapsed.days;
+    document.getElementById('anniv-hours').textContent = elapsed.hours;
+    document.getElementById('anniv-minutes').textContent = elapsed.minutes;
+    return elapsed;
+  }
+
+  function spawnLeafField() {
+    leafField.innerHTML = '';
+    var count = 16;
+    for (var i = 0; i < count; i++) {
+      var leaf = document.createElement('span');
+      leaf.className = 'leaf-item';
+      leaf.textContent = LEAF_GLYPHS[i % LEAF_GLYPHS.length];
+      leaf.style.left = randRange(-4, 60) + '%';
+      leaf.style.top = randRange(-14, -2) + '%';
+      leaf.style.fontSize = randRange(13, 24) + 'px';
+      leafField.appendChild(leaf);
+
+      gsap.set(leaf, { opacity: 0, rotation: randRange(0, 360) });
+      gsap.to(leaf, { opacity: randRange(0.5, 0.9), duration: 1, delay: Math.random() * 2 });
+      gsap.to(leaf, {
+        x: '+=' + randRange(-70, 90), y: '+=' + randRange(300, 520),
+        rotation: '+=' + randRange(340, 760),
+        duration: 5.5 + Math.random() * 4.5, delay: Math.random() * 3, repeat: -1, ease: 'none',
+        onRepeat: function () {
+          var el = this.targets()[0];
+          gsap.set(el, { x: 0, y: 0, left: randRange(-4, 60) + '%', top: randRange(-14, -2) + '%' });
+        },
+      });
+    }
+  }
+
+  // Muda de árvore: tronco desenhado com stroke-dashoffset (igual à rosa),
+  // depois a copa cresce em folhas — quanto mais semanas desde o início, mais copa aparece.
+  function buildSapling(container) {
+    if (container.querySelector('svg')) return container._saplingData;
+
+    var svg = svgEl('svg', { viewBox: '0 0 140 190', class: 'sapling-svg' });
+
+    var trunk = svgEl('path', {
+      d: 'M70,188 C71,150 69,120 71,98 C72,86 69,76 70,64',
+      fill: 'none', stroke: '#6b4a2e', 'stroke-width': 8, 'stroke-linecap': 'round',
+    });
+    svg.appendChild(trunk);
+
+    var branchL = svgEl('path', { d: 'M70,112 C56,105 47,96 43,84', fill: 'none', stroke: '#6b4a2e', 'stroke-width': 4, 'stroke-linecap': 'round' });
+    var branchR = svgEl('path', { d: 'M70,100 C83,92 92,82 97,71', fill: 'none', stroke: '#6b4a2e', 'stroke-width': 4, 'stroke-linecap': 'round' });
+    svg.appendChild(branchL);
+    svg.appendChild(branchR);
+
+    var canopy = svgEl('g', { transform: 'translate(70,58)' });
+    svg.appendChild(canopy);
+
+    // Copa em formato de coração feita de vários coraçõezinhos (❤) — reaproveita
+    // a mesma matemática do coração 3D (heartBoundaryPoint / isInsideHeart) já
+    // usada mais acima no arquivo, só que aqui em 2D pra desenhar a árvore.
+    var boundary = buildBoundary(160, 1);
+    var HEART_PIXEL_SCALE = 34;
+    var points = [];
+
+    var outlineCount = 72;
+    for (var o = 0; o < outlineCount; o++) {
+      var t = (o / outlineCount) * Math.PI * 2;
+      var p = heartBoundaryPoint(t, 1);
+      points.push({ x: p.x * HEART_PIXEL_SCALE, y: -p.y * HEART_PIXEL_SCALE });
+    }
+    var fillCount = 400;
+    for (var f = 0; f < fillCount; f++) {
+      var fp = sampleFilledHeart(boundary, 3);
+      points.push({ x: fp.x * HEART_PIXEL_SCALE, y: -fp.y * HEART_PIXEL_SCALE });
+    }
+
+    var tones = ['#ff2d55', '#ff5c8a', '#c8102e', '#ff8fae', '#e0113f'];
+    var hearts = [];
+    points.forEach(function (pt, i) {
+      var heart = svgEl('text', {
+        x: pt.x, y: pt.y, 'text-anchor': 'middle', 'dominant-baseline': 'middle',
+        'font-size': randRange(8, 14), fill: tones[i % tones.length], class: 'sapling-heart',
+      });
+      heart.textContent = '❤';
+      heart.style.transform = 'rotate(' + randRange(-25, 25) + 'deg)';
+      canopy.appendChild(heart);
+      hearts.push(heart);
+    });
+
+    // pequenos corações caindo/flutuando perto da copa, só de enfeite
+    var floaters = [];
+    for (var d = 0; d < 6; d++) {
+      var floater = svgEl('text', {
+        x: -50 + randRange(-14, 10), y: 30 + d * 12 + randRange(-6, 6),
+        'text-anchor': 'middle', 'font-size': randRange(8, 13), fill: tones[d % tones.length], class: 'sapling-floater',
+      });
+      floater.textContent = '❤';
+      canopy.appendChild(floater);
+      floaters.push(floater);
+    }
+
+    container.appendChild(svg);
+    var data = { svg: svg, trunk: trunk, branches: [branchL, branchR], hearts: hearts, floaters: floaters };
+    container._saplingData = data;
+    return data;
+  }
+
+  function growSapling(container, weeksElapsed) {
+    var data = buildSapling(container);
+    if (!data) return;
+
+    // A linha preta embaixo da árvore enche como uma barra de carregamento
+    var groundFill = document.getElementById('anniv-ground-fill');
+    if (groundFill) gsap.set(groundFill, { width: '0%' });
+
+    var trunkLength = data.trunk.getTotalLength();
+    data.trunk.style.strokeDasharray = trunkLength;
+    data.trunk.style.strokeDashoffset = trunkLength;
+    gsap.to(data.trunk, { strokeDashoffset: 0, duration: 1.15, ease: 'power2.inOut' });
+    data.branches.forEach(function (branch) {
+      var len = branch.getTotalLength();
+      branch.style.strokeDasharray = len;
+      branch.style.strokeDashoffset = len;
+      gsap.to(branch, { strokeDashoffset: 0, duration: 0.75, delay: 0.35, ease: 'power2.inOut' });
+    });
+
+    data.hearts.forEach(function (heart, i) {
+      gsap.set(heart, { transformOrigin: '50% 50%', scale: 0, opacity: 0 });
+      gsap.to(heart, { scale: 1, opacity: 1, duration: 0.5, delay: 0.8 + i * 0.006, ease: 'back.out(1.7)' });
+    });
+
+    data.floaters.forEach(function (floater, i) {
+      gsap.set(floater, { transformOrigin: '50% 50%', scale: 0, opacity: 0 });
+      gsap.to(floater, { scale: 1, opacity: 0.85, duration: 0.4, delay: 1.5 + i * 0.15, ease: 'back.out(2)' });
+      gsap.to(floater, {
+        y: '+=' + randRange(30, 55), x: '+=' + randRange(-14, -4), opacity: 0,
+        duration: 3 + Math.random() * 2, delay: 2 + i * 0.3, repeat: -1, ease: 'power1.in',
+        onRepeat: function () {
+          var el = this.targets()[0];
+          gsap.set(el, { y: '-=' + randRange(30, 55), x: '+=' + randRange(4, 14), opacity: 0.85 });
+        },
+      });
+    });
+
+    // carregamento: a barra preenche junto com o crescimento da árvore
+    if (groundFill) {
+      gsap.to(groundFill, {
+        width: '100%',
+        duration: 1.0 + data.hearts.length * 0.006 + 0.8,
+        ease: 'power1.inOut',
+      });
+    }
+  }
+
+  anniversaryTrigger.addEventListener('click', function () {
+    anniversaryOverlay.classList.add('is-active');
+    spawnLeafField();
+
+    var elapsed = updateAnniversaryCounter();
+    if (anniversaryIntervalId) clearInterval(anniversaryIntervalId);
+    anniversaryIntervalId = setInterval(updateAnniversaryCounter, 1000);
+
+    var weeksElapsed = Math.floor(elapsed.days / 7);
+    weekCaptionEl.textContent = 'semana ' + (weeksElapsed + 1) + ' de crescimento';
+    growSapling(saplingContainer, weeksElapsed);
+  });
+
+  anniversaryClose.addEventListener('click', function (event) {
+    event.stopPropagation();
+    anniversaryOverlay.classList.remove('is-active');
+    if (anniversaryIntervalId) {
+      clearInterval(anniversaryIntervalId);
+      anniversaryIntervalId = null;
+    }
+  });
+
+
+  /* ============================== CENA 1 — universo cósmico vivo ============================== */
+  // Cada elemento abaixo é um objeto independente, animado individualmente.
+  // Quando a barra de porcentagem termina, a câmera entra suavemente nesta cena.
+  var cosmicPhase = true;
+  var cosmicScene = new THREE.Scene();
+  cosmicScene.background = new THREE.Color(0x04030a);
+  cosmicScene.add(new THREE.AmbientLight(0xffb3cc, 0.6));
+  var cosmicCamera = new THREE.PerspectiveCamera(35, sizes.width / sizes.height, 0.1, 200);
+  cosmicCamera.position.set(0, 0, 10.6);
+
+  var COSMIC_HEART_CENTER = new THREE.Vector3(0, 0.5, 0);
+  var COSMIC_GALAXY_CENTER = new THREE.Vector3(0, -2.8, -1.6);
+  var COSMIC_HEART_SCALE = 0.72;
+
+  function cosmicRadialTexture(stops) {
+    var c = document.createElement('canvas');
+    c.width = 256; c.height = 256;
+    var ctx = c.getContext('2d');
+    var g = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+    for (var i = 0; i < stops.length; i++) g.addColorStop(stops[i][0], stops[i][1]);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 256, 256);
+    return new THREE.CanvasTexture(c);
+  }
+  function cosmicGlowSprite(color, intensity) {
+    return new THREE.SpriteMaterial({
+      map: cosmicRadialTexture([
+        [0, 'rgba(255,255,255,' + intensity + ')'],
+        [0.3, 'rgba(255,255,255,' + (intensity * 0.4) + ')'],
+        [1, 'rgba(255,255,255,0)'],
+      ]),
+      color: color, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    });
+  }
+  function cosmicNebulaTexture(rgb, alpha) {
+    var c = document.createElement('canvas');
+    c.width = 256; c.height = 256;
+    var ctx = c.getContext('2d');
+    var g = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+    g.addColorStop(0, 'rgba(' + rgb + ',' + alpha + ')');
+    g.addColorStop(0.4, 'rgba(' + rgb + ',' + (alpha * 0.5) + ')');
+    g.addColorStop(0.75, 'rgba(' + rgb + ',' + (alpha * 0.15) + ')');
+    g.addColorStop(1, 'rgba(' + rgb + ',0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 256, 256);
+    return new THREE.CanvasTexture(c);
+  }
+
+  // Material de pontos (estrelas / galáxia / poeira) com twinkle e brilho suave.
+  function cosmicPointMaterial(colorA, colorB, sizeK) {
+    return new THREE.ShaderMaterial({
+      uniforms: {
+        uColorA: { value: new THREE.Color(colorA) },
+        uColorB: { value: new THREE.Color(colorB) },
+        uPixelRatio: { value: sizes.pixelRatio },
+        uTime: { value: 0 },
+        uSizeK: { value: sizeK },
+        uOpacity: { value: 0 },
+      },
+      vertexShader: [
+        'attribute float aSize;',
+        'attribute float aSeed;',
+        'uniform float uPixelRatio;',
+        'uniform float uTime;',
+        'uniform float uSizeK;',
+        'varying float vSeed;',
+        'varying float vTw;',
+        'void main() {',
+        '  vSeed = aSeed;',
+        '  float tw = 0.7 + 0.3 * sin(uTime * (1.0 + aSeed * 2.3) + aSeed * 63.0);',
+        '  vTw = tw;',
+        '  vec4 mv = modelViewMatrix * vec4(position, 1.0);',
+        '  gl_PointSize = aSize * uPixelRatio * (uSizeK / -mv.z) * tw;',
+        '  gl_Position = projectionMatrix * mv;',
+        '}',
+      ].join('\n'),
+      fragmentShader: [
+        'uniform vec3 uColorA;',
+        'uniform vec3 uColorB;',
+        'uniform float uOpacity;',
+        'varying float vSeed;',
+        'varying float vTw;',
+        'void main() {',
+        '  float d = distance(gl_PointCoord, vec2(0.5));',
+        '  if (d > 0.5) discard;',
+        '  float glow = smoothstep(0.5, 0.0, d);',
+        '  vec3 col = mix(uColorA, uColorB, vSeed);',
+        '  float a = glow * uOpacity * vTw * (0.45 + 0.55 * vSeed);',
+        '  gl_FragColor = vec4(col, a);',
+        '}',
+      ].join('\n'),
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    });
+  }
+
+  // 1) Fundo espacial: milhares de estrelas em camadas de profundidade (parallax).
+  function cosmicStarLayer(colorA, colorB, count, sizeMin, sizeMax, zMin, zMax, spreadX, spreadY, sizeK) {
+    var geo = new THREE.BufferGeometry();
+    var pos = new Float32Array(count * 3);
+    var sizes = new Float32Array(count);
+    var seeds = new Float32Array(count);
+    for (var i = 0; i < count; i++) {
+      pos[i * 3] = randRange(-spreadX, spreadX);
+      pos[i * 3 + 1] = randRange(-spreadY, spreadY);
+      pos[i * 3 + 2] = -zMin - randRange(0, zMax - zMin);
+    }
+    for (var j = 0; j < count; j++) {
+      sizes[j] = randRange(sizeMin, sizeMax);
+      seeds[j] = Math.random();
+    }
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
+    geo.setAttribute('aSeed', new THREE.BufferAttribute(seeds, 1));
+    var mat = cosmicPointMaterial(colorA, colorB, sizeK);
+    var pts = new THREE.Points(geo, mat);
+    pts.frustumCulled = false;
+    cosmicScene.add(pts);
+    return { points: pts, material: mat };
+  }
+
+  var starLayers = [
+    cosmicStarLayer(0xff9fc0, 0xffffff, Math.round(900 * particleMultiplier), 0.7, 1.5, 24, 42, 12, 7, 34),
+    cosmicStarLayer(0xff7aa8, 0xcfe0ff, Math.round(520 * particleMultiplier), 1.1, 2.2, 13, 23, 11, 6.5, 30),
+    cosmicStarLayer(0xff9fc0, 0xff5c8a, Math.round(240 * particleMultiplier), 1.8, 3.6, 6, 12, 10, 6, 42),
+  ];
+
+  // 2) Nebulosas suaves (rosa, roxo, magenta, azul) — brilho difuso, bordas desaparecem.
+  var cosmicNebulas = [];
+  var nebCfg = [
+    { x: -8, y: 2.4, z: -9, s: 20, rgb: '255,120,190', a: 0.13, r: 0.6 },
+    { x: 8, y: -1.6, z: -12, s: 24, rgb: '168,85,247', a: 0.12, r: -0.9 },
+    { x: -6, y: -4, z: -8, s: 16, rgb: '255,92,138', a: 0.11, r: 0.3 },
+    { x: 5.5, y: 3.4, z: -7, s: 15, rgb: '120,170,255', a: 0.09, r: -0.4 },
+    { x: 0, y: -0.5, z: -14, s: 30, rgb: '255,80,180', a: 0.1, r: 0 },
+    { x: 9, y: 4.6, z: -16, s: 18, rgb: '200,110,255', a: 0.08, r: 1.2 },
+  ];
+  nebCfg.forEach(function (nc) {
+    var tex = cosmicNebulaTexture(nc.rgb, nc.a);
+    var mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
+    var mesh = new THREE.Mesh(new THREE.PlaneGeometry(nc.s, nc.s), mat);
+    mesh.position.set(nc.x, nc.y, nc.z);
+    mesh.rotation.z = nc.r;
+    cosmicScene.add(mesh);
+    cosmicNebulas.push({ mesh: mesh, material: mat, spin: randRange(-0.008, 0.008), targetOpacity: nc.a });
+  });
+
+  // 3) Galáxia espiral na parte inferior, com milhares de partículas orbitando.
+  function cosmicGenerateGalaxy(count) {
+    var pos = new Float32Array(count * 3);
+    var sizes = new Float32Array(count);
+    var seeds = new Float32Array(count);
+    var arms = 3;
+    for (var i = 0; i < count; i++) {
+      var arm = i % arms;
+      var radius = Math.pow(Math.random(), 1.35) * 2.4;
+      var angle = (arm / arms) * Math.PI * 2 + radius * 1.7 + randRange(-0.42, 0.42);
+      pos[i * 3] = Math.cos(angle) * radius;
+      pos[i * 3 + 1] = Math.sin(angle) * radius * 0.62;
+      pos[i * 3 + 2] = randRange(-0.22, 0.22) * (0.4 + radius);
+      var falloff = clamp(1 - radius / 2.7, 0.12, 1);
+      sizes[i] = randRange(0.9, 2.5) * (0.3 + falloff);
+      seeds[i] = Math.random();
+    }
+    return { pos: pos, sizes: sizes, seeds: seeds };
+  }
+  var galaxyCount = Math.round(2600 * particleMultiplier);
+  var galaxyData = cosmicGenerateGalaxy(galaxyCount);
+  var galaxyGeo = new THREE.BufferGeometry();
+  galaxyGeo.setAttribute('position', new THREE.BufferAttribute(galaxyData.pos, 3));
+  galaxyGeo.setAttribute('aSize', new THREE.BufferAttribute(galaxyData.sizes, 1));
+  galaxyGeo.setAttribute('aSeed', new THREE.BufferAttribute(galaxyData.seeds, 1));
+  var galaxyMat = cosmicPointMaterial(0xff8fb3, 0xff5c8a, 30);
+  var galaxyPoints = new THREE.Points(galaxyGeo, galaxyMat);
+  galaxyPoints.frustumCulled = false;
+  var galaxyGroup = new THREE.Group();
+  galaxyGroup.add(galaxyPoints);
+  galaxyGroup.position.copy(COSMIC_GALAXY_CENTER);
+  cosmicScene.add(galaxyGroup);
+  var galaxyCoreGlow = new THREE.Sprite(cosmicGlowSprite(0xff5c8a, 0.75));
+  galaxyCoreGlow.scale.set(5.6, 5.6, 1);
+  galaxyCoreGlow.position.set(0, 0, -0.1);
+  galaxyGroup.add(galaxyCoreGlow);
+
+  // 4) Buraco negro no centro da galáxia: círculo perfeitamente preto + halo rosa.
+  var blackHole = new THREE.Mesh(new THREE.CircleGeometry(0.5, 48), new THREE.MeshBasicMaterial({ color: 0x000000 }));
+  blackHole.position.set(0, COSMIC_GALAXY_CENTER.y, COSMIC_GALAXY_CENTER.z + 0.9);
+  cosmicScene.add(blackHole);
+  var blackHoleHalo = new THREE.Sprite(cosmicGlowSprite(0xff5c8a, 0.85));
+  blackHoleHalo.scale.set(3.4, 3.4, 1);
+  blackHoleHalo.position.set(0, COSMIC_GALAXY_CENTER.y, COSMIC_GALAXY_CENTER.z + 0.6);
+  cosmicScene.add(blackHoleHalo);
+  var blackHoleGlow = new THREE.Sprite(cosmicGlowSprite(0xff9fc0, 0.45));
+  blackHoleGlow.scale.set(2.5, 2.5, 1);
+  blackHoleGlow.position.set(0, COSMIC_GALAXY_CENTER.y, COSMIC_GALAXY_CENTER.z + 1.05);
+  cosmicScene.add(blackHoleGlow);
+
+  // 5) Primeiro coração — formado só por partículas independentes (sem SVG/imagem).
+  var cosmicHeartCount = Math.round(1500 * particleMultiplier);
+  function cosmicGenerateHeart(count, scale) {
+    var positions = new Float32Array(count * 3);
+    var colors = new Float32Array(count * 3);
+    var sizes = new Float32Array(count);
+    var seeds = new Float32Array(count);
+    var appear = new Float32Array(count);
+    var boundary = buildBoundary(220, 1);
+    var outlineN = Math.floor(count * 0.42);
+    var idx = 0;
+    var i, j;
+    for (i = 0; i < outlineN; i++) {
+      var pt = heartBoundaryPoint((i / outlineN) * Math.PI * 2, scale);
+      positions[idx * 3] = pt.x + randRange(-0.035, 0.035);
+      positions[idx * 3 + 1] = pt.y + randRange(-0.035, 0.035);
+      positions[idx * 3 + 2] = randRange(-0.35, 0.35);
+      colors[idx * 3] = 1.0; colors[idx * 3 + 1] = 0.42; colors[idx * 3 + 2] = 0.6;
+      sizes[idx] = randRange(1.6, 2.7);
+      seeds[idx] = Math.random();
+      appear[idx] = Math.pow(i / outlineN, 0.85) * 0.42;
+      idx++;
+    }
+    var fillPts = [];
+    for (j = 0; j < count - outlineN; j++) {
+      var fp = sampleFilledHeart(boundary, 3);
+      fillPts.push({ x: fp.x * scale, y: fp.y * scale, d: Math.sqrt(fp.x * fp.x + fp.y * fp.y) });
+    }
+    fillPts.sort(function (a, b) { return a.d - b.d; });
+    for (j = 0; j < fillPts.length; j++) {
+      var f = fillPts[j];
+      positions[idx * 3] = f.x; positions[idx * 3 + 1] = f.y; positions[idx * 3 + 2] = randRange(-0.3, 0.3);
+      if (Math.random() < 0.3) { colors[idx * 3] = 1.0; colors[idx * 3 + 1] = 0.8; colors[idx * 3 + 2] = 0.88; }
+      else { colors[idx * 3] = 0.98; colors[idx * 3 + 1] = 0.36; colors[idx * 3 + 2] = 0.56; }
+      sizes[idx] = randRange(1.2, 2.1);
+      seeds[idx] = Math.random();
+      appear[idx] = 0.42 + (j / fillPts.length) * 0.58;
+      idx++;
+    }
+    return { positions: positions, colors: colors, sizes: sizes, seeds: seeds, appear: appear };
+  }
+  var cosmicHeartData = cosmicGenerateHeart(cosmicHeartCount, COSMIC_HEART_SCALE);
+  var cosmicHeartGeo = new THREE.BufferGeometry();
+  cosmicHeartGeo.setAttribute('position', new THREE.BufferAttribute(cosmicHeartData.positions, 3));
+  cosmicHeartGeo.setAttribute('color', new THREE.BufferAttribute(cosmicHeartData.colors, 3));
+  cosmicHeartGeo.setAttribute('aSize', new THREE.BufferAttribute(cosmicHeartData.sizes, 1));
+  cosmicHeartGeo.setAttribute('aSeed', new THREE.BufferAttribute(cosmicHeartData.seeds, 1));
+  cosmicHeartGeo.setAttribute('aAppear', new THREE.BufferAttribute(cosmicHeartData.appear, 1));
+
+  var cosmicHeartMat = new THREE.ShaderMaterial({
+    uniforms: {
+      uPixelRatio: { value: sizes.pixelRatio },
+      uReveal: { value: 0 },
+      uTime: { value: 0 },
+      uOpacity: { value: 0 },
+    },
+    vertexShader: [
+      'attribute float aSize;',
+      'attribute float aSeed;',
+      'attribute float aAppear;',
+      'attribute vec3 color;',
+      'uniform float uPixelRatio;',
+      'uniform float uTime;',
+      'varying vec3 vColor;',
+      'varying float vSeed;',
+      'varying float vAppear;',
+      'void main() {',
+      '  vColor = color;',
+      '  vSeed = aSeed;',
+      '  vAppear = aAppear;',
+      '  vec3 p = position;',
+      '  p.x += sin(uTime * (1.4 + aSeed * 1.6) + aSeed * 41.0) * 0.02;',
+      '  p.y += cos(uTime * (1.1 + aSeed * 1.8) + aSeed * 33.0) * 0.02;',
+      '  p.z += sin(uTime * (1.6 + aSeed * 1.2) + aSeed * 27.0) * 0.02;',
+      '  vec4 mv = modelViewMatrix * vec4(p, 1.0);',
+      '  gl_PointSize = aSize * uPixelRatio * (55.0 / -mv.z);',
+      '  gl_Position = projectionMatrix * mv;',
+      '}',
+    ].join('\n'),
+    fragmentShader: [
+      'uniform float uReveal;',
+      'uniform float uTime;',
+      'uniform float uOpacity;',
+      'varying vec3 vColor;',
+      'varying float vSeed;',
+      'varying float vAppear;',
+      'void main() {',
+      '  float d = distance(gl_PointCoord, vec2(0.5));',
+      '  if (d > 0.5) discard;',
+      '  float glow = smoothstep(0.5, 0.0, d);',
+      '  float reveal = smoothstep(vAppear - 0.2, vAppear, uReveal);',
+      '  float breathe = 0.72 + 0.28 * sin(uTime * (0.9 + vSeed * 1.4) + vSeed * 51.0);',
+      '  float a = glow * uOpacity * reveal * breathe * (0.45 + 0.55 * reveal);',
+      '  gl_FragColor = vec4(vColor, a);',
+      '}',
+    ].join('\n'),
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+  });
+  var cosmicHeartGroup = new THREE.Group();
+  cosmicHeartGroup.position.copy(COSMIC_HEART_CENTER);
+  var cosmicHeartPoints = new THREE.Points(cosmicHeartGeo, cosmicHeartMat);
+  cosmicHeartPoints.frustumCulled = false;
+  cosmicHeartGroup.add(cosmicHeartPoints);
+  cosmicScene.add(cosmicHeartGroup);
+  var cosmicHeartGlow = new THREE.Sprite(cosmicGlowSprite(0xff5c8a, 0.6));
+  cosmicHeartGlow.scale.set(5.2, 5.2, 1);
+  cosmicHeartGlow.position.set(0, 0, -0.9);
+  cosmicHeartGroup.add(cosmicHeartGlow);
+
+  // 6/7/8) Órbitas independentes + planetas + molduras ovais acompanhando as órbitas.
+  function cosmicEllipseGeo(rx, ry, segments) {
+    var curve = new THREE.EllipseCurve(0, 0, rx, ry, 0, Math.PI * 2, false, 0);
+    var pts = curve.getPoints(segments || 96);
+    return new THREE.BufferGeometry().setFromPoints(pts);
+  }
+  var cosmicOrbits = [];
+  var ORBIT_CFG = [
+    { r: 2.7, ry: 0.92, tiltX: 0.18, tiltY: 0.1, spin: 0.05, color: 0xff5c8a, planet: 0.14, planetColor: 0xffd1e0 },
+    { r: 3.35, ry: 0.9, tiltX: -0.28, tiltY: 0.16, spin: -0.032, color: 0xff7aa8, planet: 0.09, planetColor: 0xffb3c6 },
+    { r: 4.0, ry: 0.94, tiltX: 0.1, tiltY: -0.14, spin: 0.023, color: 0xff9fc0, planet: 0.11, planetColor: 0xffd7e5 },
+    { r: 4.7, ry: 0.9, tiltX: -0.2, tiltY: 0.06, spin: -0.016, color: 0xff6b9c, planet: 0.13, planetColor: 0xffc4d8 },
+    { r: 5.4, ry: 0.95, tiltX: 0.14, tiltY: -0.22, spin: 0.01, color: 0xff8fb3, planet: 0.08, planetColor: 0xffffff },
+  ];
+  ORBIT_CFG.forEach(function (cfg) {
+    var rig = new THREE.Group();
+    rig.position.copy(COSMIC_HEART_CENTER);
+    var tilt = new THREE.Group();
+    tilt.rotation.x = cfg.tiltX;
+    tilt.rotation.y = cfg.tiltY;
+    rig.add(tilt);
+    var spin = new THREE.Group();
+    tilt.add(spin);
+
+    var ringMat = new THREE.LineBasicMaterial({ color: cfg.color, transparent: true, opacity: 0, blending: THREE.AdditiveBlending });
+    var ring = new THREE.Line(cosmicEllipseGeo(cfg.r, cfg.r * cfg.ry, 120), ringMat);
+    spin.add(ring);
+
+    var objects = { rig: rig, tilt: tilt, spin: spin, ringMat: ringMat, ring: ring, spinSpeed: cfg.spin };
+
+    var planet = new THREE.Mesh(
+      new THREE.SphereGeometry(cfg.planet, 20, 20),
+      new THREE.MeshStandardMaterial({ color: cfg.planetColor, emissive: cfg.planetColor, emissiveIntensity: 0.9, roughness: 0.5 })
+    );
+    planet.position.set(cfg.r * 0.75, 0, 0);
+    spin.add(planet);
+    var planetGlow = new THREE.Sprite(cosmicGlowSprite(cfg.planetColor, 0.7));
+    planetGlow.scale.set(cfg.planet * 7, cfg.planet * 7, 1);
+    planet.add(planetGlow);
+    objects.planet = planet;
+    objects.planetSpin = randRange(0.6, 1.4);
+
+    var frameGroup = new THREE.Group();
+    var a0 = randRange(0, Math.PI * 2);
+    frameGroup.position.set(Math.cos(a0) * cfg.r, Math.sin(a0) * cfg.r, 0);
+    spin.add(frameGroup);
+    var frameMat = new THREE.LineBasicMaterial({ color: 0xff4f7f, transparent: true, opacity: 0, blending: THREE.AdditiveBlending });
+    var frameLine = new THREE.Line(cosmicEllipseGeo(0.44, 0.32, 64), frameMat);
+    frameGroup.add(frameLine);
+    var frameGlow = new THREE.Sprite(cosmicGlowSprite(0xff5c8a, 0.8));
+    frameGlow.scale.set(1.5, 1.5, 1);
+    frameGlow.position.set(0, 0, -0.06);
+    frameGroup.add(frameGlow);
+    objects.frameLine = frameLine;
+    objects.frameMat = frameMat;
+    objects.frameGroup = frameGroup;
+
+    cosmicScene.add(rig);
+    cosmicOrbits.push(objects);
+  });
+
+  // 9) Dezenas de palavras flutuando pelo espaço (cada uma é um objeto separado).
+  var COSMIC_WORDS = ['Love', 'Forever', 'Destiny', 'Soul', 'Dreams', 'Universe', 'Passion', 'Always', 'Together', 'Infinity', 'Eternity', 'Eternamente', 'Te amo', 'Amor', 'Constelação', 'Alma', 'Destino', 'Para sempre', 'Sonhos', 'Infinito', 'Sempre', 'Paixão', 'Universo', 'Juntos'];
+  var cosmicWords = [];
+  function cosmicAddWord(text) {
+    var c = document.createElement('canvas');
+    c.width = 512; c.height = 128;
+    var ctx = c.getContext('2d');
+    ctx.clearRect(0, 0, 512, 128);
+    ctx.font = 'italic 400 58px Georgia, "Times New Roman", serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(255, 80, 130, 0.95)';
+    ctx.shadowBlur = 26;
+    ctx.fillStyle = '#ffd7e4';
+    ctx.fillText(text, 256, 64);
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(text, 256, 64);
+    var mat = new THREE.SpriteMaterial({
+      map: new THREE.CanvasTexture(c), transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending,
+    });
+    var sprite = new THREE.Sprite(mat);
+    var r = randRange(3.0, 8.6);
+    var ang = randRange(0, Math.PI * 2);
+    sprite.position.set(Math.cos(ang) * r, 0.5 + Math.sin(ang) * r * 0.62, randRange(-2.2, 1.8));
+    var s = randRange(0.9, 1.9);
+    sprite.scale.set(2.2 * s, 0.55 * s, 1);
+    cosmicScene.add(sprite);
+    return { sprite: sprite, material: mat, baseOpacity: randRange(0.3, 0.6) };
+  }
+  COSMIC_WORDS.forEach(function (w) { cosmicWords.push(cosmicAddWord(w)); });
+
+  // 10) Poeira de estrelas cruzando lentamente a tela (sensação tridimensional).
+  var cosmicDustCount = Math.round(1400 * particleMultiplier);
+  var cosmicDustGeo = new THREE.BufferGeometry();
+  var cosmicDustPos = new Float32Array(cosmicDustCount * 3);
+  var cosmicDustVel = new Float32Array(cosmicDustCount * 3);
+  var cosmicDustSizes = new Float32Array(cosmicDustCount);
+  var cosmicDustSeeds = new Float32Array(cosmicDustCount);
+  for (var di = 0; di < cosmicDustCount; di++) {
+    cosmicDustPos[di * 3] = randRange(-9.5, 9.5);
+    cosmicDustPos[di * 3 + 1] = randRange(-5.5, 5.5);
+    cosmicDustPos[di * 3 + 2] = randRange(-5.5, 4.5);
+    cosmicDustVel[di * 3] = randRange(-0.06, 0.06);
+    cosmicDustVel[di * 3 + 1] = randRange(-0.045, 0.045);
+    cosmicDustVel[di * 3 + 2] = randRange(-0.05, 0.05);
+    cosmicDustSizes[di] = randRange(0.8, 2.1);
+    cosmicDustSeeds[di] = Math.random();
+  }
+  cosmicDustGeo.setAttribute('position', new THREE.BufferAttribute(cosmicDustPos, 3));
+  cosmicDustGeo.setAttribute('aSize', new THREE.BufferAttribute(cosmicDustSizes, 1));
+  cosmicDustGeo.setAttribute('aSeed', new THREE.BufferAttribute(cosmicDustSeeds, 1));
+  var cosmicDustMat = cosmicPointMaterial(0xff8fb3, 0x9f8bff, 24);
+  var cosmicDust = new THREE.Points(cosmicDustGeo, cosmicDustMat);
+  cosmicDust.frustumCulled = false;
+  cosmicScene.add(cosmicDust);
+
+  var cosmicEnterObj = { v: 0 };
+  function cosmicEnter() {
+    gsap.to(cosmicEnterObj, { v: 1, duration: 3.4, ease: 'power2.inOut', delay: 0.15 });
+    starLayers.forEach(function (layer, i) {
+      gsap.to(layer.material.uniforms.uOpacity, { value: 1, duration: 1.6, delay: 0.25 + i * 0.3, ease: 'power1.out' });
+    });
+    cosmicNebulas.forEach(function (neb, i) {
+      gsap.to(neb.material, { opacity: neb.targetOpacity, duration: 2.4, delay: 0.4 + i * 0.18, ease: 'power1.out' });
+    });
+    gsap.to(galaxyMat.uniforms.uOpacity, { value: 1, duration: 1.8, delay: 0.5, ease: 'power1.out' });
+    gsap.to(cosmicHeartMat.uniforms.uReveal, { value: 1, duration: 2.6, delay: 0.9, ease: 'power2.inOut' });
+    gsap.to(cosmicHeartMat.uniforms.uOpacity, { value: 1, duration: 1.4, delay: 0.7, ease: 'power1.out' });
+    gsap.fromTo(cosmicHeartGroup.scale, { x: 0.92, y: 0.92, z: 0.92 }, { x: 1, y: 1, z: 1, duration: 2.4, delay: 0.9, ease: 'power2.out' });
+    gsap.to(cosmicHeartGroup.scale, { x: 1.035, y: 1.035, z: 1.035, duration: 1.3, delay: 3.8, yoyo: true, repeat: -1, ease: 'sine.inOut' });
+    cosmicOrbits.forEach(function (orb, i) {
+      gsap.to(orb.ringMat, { opacity: 0.3, duration: 1.4, delay: 1.2 + i * 0.14, ease: 'power1.out' });
+      gsap.to(orb.frameMat, { opacity: 0.95, duration: 1.2, delay: 1.4 + i * 0.14, ease: 'power1.out' });
+    });
+    cosmicWords.forEach(function (w, i) {
+      gsap.to(w.material, { opacity: w.baseOpacity, duration: 1.6, delay: 1.0 + i * 0.08, ease: 'power1.out' });
+      gsap.to(w.sprite.position, { y: '+=' + randRange(0.12, 0.22), x: '+=' + randRange(-0.1, 0.1), duration: 6 + Math.random() * 5, delay: i * 0.15, yoyo: true, repeat: -1, ease: 'sine.inOut' });
+      gsap.to(w.material, { opacity: clamp(w.baseOpacity + 0.18, 0.4, 0.95), duration: 5 + Math.random() * 4, delay: 2 + i * 0.12, yoyo: true, repeat: -1, ease: 'sine.inOut' });
+    });
+    gsap.to(cosmicDustMat.uniforms.uOpacity, { value: 0.8, duration: 2, delay: 0.3, ease: 'power1.out' });
+    gsap.fromTo(blackHoleHalo.material, { opacity: 0 }, { opacity: 1, duration: 1.8, delay: 0.5, ease: 'power1.out' });
+    gsap.fromTo(blackHoleGlow.material, { opacity: 0 }, { opacity: 1, duration: 1.8, delay: 0.6, ease: 'power1.out' });
+    gsap.fromTo(galaxyCoreGlow.material, { opacity: 0 }, { opacity: 1, duration: 1.8, delay: 0.5, ease: 'power1.out' });
+    gsap.fromTo(cosmicHeartGlow.material, { opacity: 0 }, { opacity: 1, duration: 2, delay: 0.9, ease: 'power1.out' });
+  }
+
+  // 12) Movimento da câmera: respiração lenta + zoom muito sutil entrando na cena.
+  function updateCosmicScene(delta, elapsed) {
+    var t = elapsed;
+    var u = cosmicEnterObj.v;
+    var zBreathe = Math.sin(t * 0.06) * 0.16 * u;
+    var creep = Math.min(t * 0.004, 0.6) * u;
+    cosmicCamera.position.x = Math.sin(t * 0.11) * 0.1 * u;
+    cosmicCamera.position.y = (Math.cos(t * 0.085) * 0.07 + 0.06) * u;
+    cosmicCamera.position.z = lerp(10.6, 9.0, u) - creep + zBreathe;
+    cosmicCamera.lookAt(0, 0.18, 0);
+
+    galaxyGroup.rotation.z += delta * 0.05;
+
+    for (var n = 0; n < cosmicNebulas.length; n++) cosmicNebulas[n].mesh.rotation.z += delta * cosmicNebulas[n].spin;
+
+    for (var o = 0; o < cosmicOrbits.length; o++) {
+      var orb = cosmicOrbits[o];
+      orb.spin.rotation.z += delta * orb.spinSpeed;
+      orb.planet.rotation.y += delta * orb.planetSpin;
+    }
+
+    var pArr = cosmicDustGeo.attributes.position.array;
+    for (var p = 0; p < cosmicDustCount; p++) {
+      var i3 = p * 3;
+      pArr[i3] += cosmicDustVel[i3] * delta;
+      pArr[i3 + 1] += cosmicDustVel[i3 + 1] * delta;
+      pArr[i3 + 2] += cosmicDustVel[i3 + 2] * delta;
+      if (pArr[i3] > 9.5) pArr[i3] = -9.5; else if (pArr[i3] < -9.5) pArr[i3] = 9.5;
+      if (pArr[i3 + 1] > 5.5) pArr[i3 + 1] = -5.5; else if (pArr[i3 + 1] < -5.5) pArr[i3 + 1] = 5.5;
+      if (pArr[i3 + 2] > 4.5) pArr[i3 + 2] = -5.5; else if (pArr[i3 + 2] < -5.5) pArr[i3 + 2] = 4.5;
+    }
+    cosmicDustGeo.attributes.position.needsUpdate = true;
+
+    starLayers.forEach(function (l) { l.material.uniforms.uTime.value = t; });
+    galaxyMat.uniforms.uTime.value = t;
+    cosmicDustMat.uniforms.uTime.value = t;
+    cosmicHeartMat.uniforms.uTime.value = t;
+  }
+
+  // Transição sem cortes da cena cósmica para a cena principal.
+  function switchToMainScene() {
+    var fade = document.getElementById('scene-fade');
+    var tl = gsap.timeline();
+    tl.to(fade, { opacity: 1, duration: 0.45, ease: 'power1.in' });
+    tl.add(function () { cosmicPhase = false; });
+    tl.to(fade, { opacity: 0, duration: 0.7, ease: 'power1.out' });
+  }
 
   var clockStart = performance.now();
   var lastTime = clockStart;
@@ -1232,12 +2359,17 @@
     lastTime = now;
     var elapsed = (now - clockStart) / 1000;
 
-    updateTunnel(delta);
-    updateWordSpiral(delta);
-    updateSaturn(delta);
-    updateHeartJitter(elapsed);
-    if (controls.enabled) controls.update();
-    renderer.render(scene, camera);
+    if (cosmicPhase) {
+      updateCosmicScene(delta, elapsed);
+      renderer.render(cosmicScene, cosmicCamera);
+    } else {
+      updateTunnel(delta);
+      updateWordSpiral(delta);
+      updateSaturn(delta);
+      updateHeartJitter(elapsed);
+      if (controls.enabled) controls.update();
+      renderer.render(scene, camera);
+    }
 
     requestAnimationFrame(tick);
   }
@@ -1245,15 +2377,16 @@
 
   function playIntro() {
     var barFill = document.getElementById('loading-bar-fill');
-    if (barFill) barFill.style.width = '100%';
-    setTimeout(function () { document.getElementById('loading-screen').classList.add('is-hidden'); }, 200);
-
-    var proxy = { speed: 0, opacity: 0 };
-    var timeline = gsap.timeline({ onComplete: function () { stageQuestionOne.classList.add('is-active'); } });
-    timeline.to(proxy, { opacity: 1, duration: 0.8, ease: 'power1.out', onUpdate: function () { setTunnelOpacity(proxy.opacity); } });
-    timeline.to(proxy, { speed: 34, duration: 2.1, ease: 'power2.in', onUpdate: function () { setTunnelSpeed(proxy.speed); } }, 0.1);
-    timeline.to(proxy, { speed: 0, duration: 1.6, ease: 'power3.out', onUpdate: function () { setTunnelSpeed(proxy.speed); } });
-    timeline.to(proxy, { opacity: 0, duration: 1.1, ease: 'power1.inOut', onUpdate: function () { setTunnelOpacity(proxy.opacity); } }, '-=0.5');
+    var proxy = { p: 0 };
+    gsap.to(proxy, {
+      p: 100, duration: 2.2, ease: 'power1.inOut',
+      onUpdate: function () { if (barFill) barFill.style.width = proxy.p + '%'; },
+      onComplete: function () {
+        document.getElementById('loading-screen').classList.add('is-hidden');
+        cosmicEnter();
+        setTimeout(function () { stageQuestionOne.classList.add('is-active'); }, 4600);
+      },
+    });
   }
 
   setTimeout(playIntro, 300);
